@@ -14,6 +14,7 @@ mapboxgl.accessToken = 'pk.eyJ1IjoiaG9uZXlmb3giLCJhIjoiY2t6OXVicGU2MThyOTJvbnh1a
 
 
 export function MapView() {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const {currentCrawl} = useContext(CurrentCrawl);
     const mapContainer = useRef<HTMLDivElement | null>(null);
     const map = useRef<Map | null>(null);
