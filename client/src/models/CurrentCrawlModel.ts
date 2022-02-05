@@ -1,5 +1,5 @@
-import {PubData} from "../contexts/PubData";
-import {Position} from "../contexts/Position";
+import {PubData} from "./PubData";
+import {Position} from "./Position";
 
 export interface CurrentCrawlModel {
     pubs: PubData[],
