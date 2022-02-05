@@ -126,4 +126,4 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-VALHALLA_ENDPOINT = 'http://35.242.191.167/'
+VALHALLA_ENDPOINT = 'http://35.242.191.167:8002/'
