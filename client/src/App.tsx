@@ -8,24 +8,23 @@ mapboxgl.accessToken = 'pk.eyJ1IjoiaG9uZXlmb3giLCJhIjoiY2t6OXVicGU2MThyOTJvbnh1a
 
 
 function App() {
-  const mapContainer = useRef(null);
-  const map = useRef(null);
-  const [lng, setLng] = useState(-70.9);
-  const [lat, setLat] = useState(42.35);
+  const mapContainer = useRef<HTMLDivElement | null>(null);
+  const map = useRef<Map | null>(null);
+  const [lng, setLng] = useState(-0.11);
+  const [lat, setLat] = useState(51.5);
   const [zoom, setZoom] = useState(9);
 
   useEffect(() => {
-    //if (map.current) return; // initialize map only once
-    // FIXME: these ts ignores, see https://stackoverflow.com/questions/60322612/what-are-the-correct-types-to-map-variables-using-mapbox-in-react/60334542#60334542
-    // @ts-ignore
-    const map = new mapboxgl.Map({
-      // @ts-ignore
-      container: mapContainer.current,
+    if (map.current) return; // initialize map only once
+
+    map.current = new mapboxgl.Map({
+      container: mapContainer.current || "",
       style: 'mapbox://styles/mapbox/streets-v11',
       center: [lng, lat],
       zoom,
     });
-    map.addControl(
+
+    map.current.addControl(
       new mapboxgl.GeolocateControl({
         positionOptions: {
           enableHighAccuracy: true
@@ -37,10 +36,19 @@ function App() {
       })
     );
 
+    map.current.on('move', () => {
+      if (!map.current) return; // initialize map only once
+      setLng(map.current.getCenter().lng);
+      setLat(map.current.getCenter().lat);
+      setZoom(map.current.getZoom());
+    });
   });
 
   return (
     <div className="App">
+      <div className="sidebar">
+        Longitude: {lng} | Latitude: {lat} | Zoom: {zoom}
+      </div>
       <div ref={mapContainer} className="map-container" />
     </div>
   );
