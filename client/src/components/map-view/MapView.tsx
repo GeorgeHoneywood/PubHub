@@ -91,16 +91,14 @@ export function MapView() {
 
         const bounds = map.current?.getBounds()
         const formattedBounds = `${bounds?.getSouth()},${bounds?.getWest()},${bounds?.getNorth()},${bounds?.getEast()}`
-        const overpassQuery = `[out:json][timeout:25];(nwr["amenity"="pub"](${formattedBounds});); out center;`
+        const overpassQuery = `[out:json][timeout:25];(nwr["amenity"~"pub|bar"](${formattedBounds});); out center;`
 
-        console.log("get pubs");
         const response = await fetch("https://overpass-api.de/api/interpreter", {
             "body": `data=${encodeURIComponent(overpassQuery)}`,
             "method": "POST",
         });
 
         const data = await response.json();
-        console.log(data);
 
         for (const element of data.elements) {
             let lat = 0
