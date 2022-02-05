@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, {useEffect, useRef, useState, useContext} from "react";
-import mapboxgl, {Map} from "mapbox-gl";
+import mapboxgl, {Map, Marker} from "mapbox-gl";
 import MapboxDraw from "@mapbox/mapbox-gl-draw";
 import styles from './MapView.module.css';
 import {CurrentCrawl} from "../../contexts/CurrentCrawl";
@@ -8,6 +8,8 @@ import {Position} from "../../models/Position";
 
 import { decodePolyline } from './helper'
 import {PubData} from "../../models/PubData";
+import {getPubs, getPubsInRegion} from "../../services/Overpass";
+import {getRoute} from "../../services/Backend";
 
 
 mapboxgl.accessToken = 'pk.eyJ1IjoiaG9uZXlmb3giLCJhIjoiY2t6OXVicGU2MThyOTJvbnh1a21idjhkZSJ9.LMyDoR9cFGG3HqAc9Zlwkg';
@@ -16,6 +18,8 @@ mapboxgl.accessToken = 'pk.eyJ1IjoiaG9uZXlmb3giLCJhIjoiY2t6OXVicGU2MThyOTJvbnh1a
 export function MapView() {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const {currentCrawl} = useContext(CurrentCrawl);
+    const [pubs, setPubs] = useState([] as PubData[]);
+    const [markers, setMarkers] = useState([] as Marker[]);
     const mapContainer = useRef<HTMLDivElement | null>(null);
     const map = useRef<Map | null>(null);
     const [lng, setLng] = useState(-0.11);
@@ -64,7 +68,7 @@ export function MapView() {
         });
         map.current.addControl(draw);
 
-        const updateArea = (e) => {
+        const updateArea = async (e) => {
             const data = draw.getAll();
             if (data.features.length > 0) {
                 let index = data.features.length - 1;
@@ -75,9 +79,11 @@ export function MapView() {
                 // Restrict the area to 2 decimal points.
                 if (data.features.length > 1) {
                     data.features.forEach((value, i) => {
-                       if (i < index) draw.delete(value.id);
+                        if (i < index) draw.delete(value.id);
                     });
                 }
+                let l = await getPubsInRegion(coordinates);
+                console.log(l);
             } else {
                 if (e.type !== 'draw.delete')
                     alert('Click the map to draw a polygon.');
@@ -89,67 +95,40 @@ export function MapView() {
 
     }, []);
 
-    let pubs: PubData[] = [];
-
-    async function getPubs() {
-        if (!map.current || zoom < 13) return;
-
-        const bounds = map.current?.getBounds()
-        const formattedBounds = `${bounds?.getSouth()},${bounds?.getWest()},${bounds?.getNorth()},${bounds?.getEast()}`
-        const overpassQuery = `[out:json][timeout:25];(nwr["amenity"~"pub|bar"](${formattedBounds});); out center;`
-
-        const response = await fetch("https://overpass-api.de/api/interpreter", {
-            "body": `data=${encodeURIComponent(overpassQuery)}`,
-            "method": "POST",
-        });
-
-        const data = await response.json();
-
-        for (const element of data.elements) {
-            let lat = 0
-            let lon = 0
-
-            if (element.type === 'node') {
-                lat = element.lat;
-                lon = element.lon;
-            } else {
-                lat = element.center.lat;
-                lon = element.center.lon;
-            }
-
-            pubs.push({position: {longitude: lon, latitude: lat}, name: element.tags.name})
-
-            new mapboxgl.Marker()
-                .setLngLat({lon, lat})
+    useEffect(() => {
+        markers.forEach((value: Marker) => {value.remove()});
+        let tempList: Marker[] = [];
+        pubs.forEach((value: PubData) => {
+            if (!map.current) return;
+            let m = new mapboxgl.Marker()
+                .setLngLat({lon: value.position.longitude, lat: value.position.latitude})
                 .setPopup(
                     new mapboxgl.Popup({offset: 25}) // add popups
                         .setHTML(
-                            `<h3>${(element.tags && element.tags.name) || "N/A"}</h3>`
+                            `<h3>${value.name || "N/A"}</h3>`
                         )
                 )
                 .addTo(map.current);
-        }
+            tempList.push(m);
+        })
+        setMarkers(() => tempList);
+    }, [pubs]);
 
-        await getRoute(pubs)
-    }
+    async function retrievePubs() {
+        if (!map.current || zoom < 13) return;
 
-    async function getRoute(pubs: PubData[]) {
-        if (!map.current || pubs.length < 2) return;
-
-        const response = await fetch("http://localhost:8000/route", {
-            "headers": {
-                "content-type": "application/json"
-            },
-            "body": JSON.stringify({
-                locations: pubs.map(pub => ({
-                    lat: pub.position.latitude,
-                    lon: pub.position.longitude
-                }))
-            }),
-            "method": "POST",
+        const pubs = await getPubs(map.current?.getBounds());
+        setPubs((prevValue) => {
+            return pubs;
         });
 
-        const data = await response.json();
+        await retrieveRoute(pubs)
+    }
+
+    async function retrieveRoute(pubs: PubData[]) {
+        if (!map.current || pubs.length < 2) return;
+
+        const data = await getRoute(pubs);
 
         let concatenatedLines: any[] = []
 
@@ -180,7 +159,7 @@ export function MapView() {
 
     return (
         <>
-            <div className={styles.sidebar} onClick={getPubs}>
+            <div className={styles.sidebar} onClick={retrievePubs}>
                 Longitude: {lng} | Latitude: {lat} | Zoom: {zoom}
             </div>
             <div ref={mapContainer} className="map-container"/>
