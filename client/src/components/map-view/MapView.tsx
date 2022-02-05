@@ -1,15 +1,16 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, {useEffect, useRef, useState, useContext} from "react";
-import mapboxgl, {Map, Marker} from "mapbox-gl";
+import React, { useEffect, useRef, useState, useContext } from "react";
+import mapboxgl, { Map, Marker } from "mapbox-gl";
 import MapboxDraw from "@mapbox/mapbox-gl-draw";
 import styles from './MapView.module.css';
-import {CurrentCrawl} from "../../contexts/CurrentCrawl";
-import {Position} from "../../models/Position";
+import { CurrentCrawl } from "../../contexts/CurrentCrawl";
+import { Position } from "../../models/Position";
+import debounce from "lodash/debounce"
 
 import { decodePolyline } from './helper'
-import {PubData} from "../../models/PubData";
-import {getPubs, getPubsInRegion} from "../../services/Overpass";
-import {getRoute} from "../../services/Backend";
+import { PubData } from "../../models/PubData";
+import { getPubs, getPubsInRegion } from "../../services/Overpass";
+import { getRoute } from "../../services/Backend";
 
 
 mapboxgl.accessToken = 'pk.eyJ1IjoiaG9uZXlmb3giLCJhIjoiY2t6OXVicGU2MThyOTJvbnh1a21idjhkZSJ9.LMyDoR9cFGG3HqAc9Zlwkg';
@@ -17,7 +18,7 @@ mapboxgl.accessToken = 'pk.eyJ1IjoiaG9uZXlmb3giLCJhIjoiY2t6OXVicGU2MThyOTJvbnh1a
 
 export function MapView() {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const {currentCrawl} = useContext(CurrentCrawl);
+    const { currentCrawl } = useContext(CurrentCrawl);
     const [pubs, setPubs] = useState([] as PubData[]);
     const [markers, setMarkers] = useState([] as Marker[]);
     const mapContainer = useRef<HTMLDivElement | null>(null);
@@ -48,11 +49,17 @@ export function MapView() {
             })
         );
 
+        const debouncedGetPubs = debounce(retrievePubs, 5 * 1000, { leading: true, trailing: true });
+
         map.current.on('move', () => {
             if (!map.current) return;
             setLng(map.current.getCenter().lng);
             setLat(map.current.getCenter().lat);
             setZoom(map.current.getZoom());
+
+            if (map.current.getZoom() > 14) {
+                debouncedGetPubs()
+            }
         });
 
         const draw = new MapboxDraw({
@@ -73,7 +80,7 @@ export function MapView() {
             if (data.features.length > 0) {
                 let index = data.features.length - 1;
                 const coordinates = data.features[index].geometry.coordinates[0].map((value) => {
-                    return {latitude: value[0], longitude: value[1]} as Position;
+                    return { latitude: value[0], longitude: value[1] } as Position;
                 });
                 console.log(coordinates);
                 // Restrict the area to 2 decimal points.
@@ -96,14 +103,14 @@ export function MapView() {
     }, []);
 
     useEffect(() => {
-        markers.forEach((value: Marker) => {value.remove()});
+        markers.forEach((value: Marker) => { value.remove() });
         let tempList: Marker[] = [];
         pubs.forEach((value: PubData) => {
             if (!map.current) return;
             let m = new mapboxgl.Marker()
-                .setLngLat({lon: value.position.longitude, lat: value.position.latitude})
+                .setLngLat({ lon: value.position.longitude, lat: value.position.latitude })
                 .setPopup(
-                    new mapboxgl.Popup({offset: 25}) // add popups
+                    new mapboxgl.Popup({ offset: 25 }) // add popups
                         .setHTML(
                             `<h3>${value.name || "N/A"}</h3>`
                         )
@@ -115,7 +122,8 @@ export function MapView() {
     }, [pubs]);
 
     async function retrievePubs() {
-        if (!map.current || zoom < 13) return;
+        if (!map.current) return;
+        console.log("getting the pubs in the bounds")
 
         const pubs = await getPubs(map.current?.getBounds());
         setPubs((prevValue) => {
@@ -162,7 +170,7 @@ export function MapView() {
             <div className={styles.sidebar} onClick={retrievePubs}>
                 Longitude: {lng} | Latitude: {lat} | Zoom: {zoom}
             </div>
-            <div ref={mapContainer} className="map-container"/>
+            <div ref={mapContainer} className="map-container" />
         </>
     )
 }

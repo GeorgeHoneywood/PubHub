@@ -1,4 +1,4 @@
-import mapboxgl, {LngLatBounds} from "mapbox-gl";
+import {LngLatBounds} from "mapbox-gl";
 import {PubData} from "../models/PubData";
 import {Position} from "../models/Position";
 
