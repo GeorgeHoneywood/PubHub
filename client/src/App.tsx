@@ -1,6 +1,7 @@
 import './App.css';
 import React, { useRef, useEffect, useState } from 'react';
 import mapboxgl, { Map } from 'mapbox-gl'; // eslint-disable-line import/no-webpack-loader-syntax
+import MapboxGeocoder from 'mapbox-gl-geocoder';
 
 // this is fine :))
 mapboxgl.accessToken = 'pk.eyJ1IjoiaG9uZXlmb3giLCJhIjoiY2t6OXVicGU2MThyOTJvbnh1a21idjhkZSJ9.LMyDoR9cFGG3HqAc9Zlwkg';
@@ -41,6 +42,25 @@ function App() {
       setLat(map.current.getCenter().lat);
       setZoom(map.current.getZoom());
     });
+      
+  const marker = new mapboxgl.Marker() // Initialize a new marker
+  .setLngLat([lng,lat]) // Marker [lng, lat] coordinates
+  .addTo(map.current); // Add the marker to the map
+
+  const geocoder = new MapboxGeocoder({
+    // Initialize the geocoder
+    accessToken: mapboxgl.accessToken, // Set the access token
+    mapboxgl: mapboxgl, // Set the mapbox-gl instance
+    marker: false, // Do not use the default marker style
+    placeholder: 'Search here', // Placeholder text for the search bar
+    //bbox: [-122.30937, 37.84214, -122.23715, 37.89838], // Boundary for Berkeley
+    proximity: {
+      longitude: lng,
+      latitude: lat
+    } 
+    });
+    map.current.addControl(geocoder); // https://docs.mapbox.com/help/tutorials/local-search-geocoding-api/#the-bbox-parameter
+    
   });
 
   let pubs: any[] = [];
