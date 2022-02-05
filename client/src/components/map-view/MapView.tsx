@@ -1,13 +1,15 @@
-import React, {useEffect, useRef, useState} from "react";
+import React, {useEffect, useRef, useState, useContext} from "react";
 import mapboxgl, {Map} from "mapbox-gl";
 import MapboxGeocoder from 'mapbox-gl-geocoder';
 import styles from './MapView.module.css';
+import {CurrentCrawl} from "../../contexts/CurrentCrawl";
 
 
 mapboxgl.accessToken = 'pk.eyJ1IjoiaG9uZXlmb3giLCJhIjoiY2t6OXVicGU2MThyOTJvbnh1a21idjhkZSJ9.LMyDoR9cFGG3HqAc9Zlwkg';
 
 
 export function MapView() {
+    const { currentCrawl } = useContext(CurrentCrawl);
     const mapContainer = useRef<HTMLDivElement | null>(null);
     const map = useRef<Map | null>(null);
     const [lng, setLng] = useState(-0.11);
@@ -66,12 +68,7 @@ export function MapView() {
 
         const bounds = map.current?.getBounds()
         const formattedBounds = `${bounds?.getSouth()},${bounds?.getWest()},${bounds?.getNorth()},${bounds?.getEast()}`
-        const overpassQuery = `
-[out:json][timeout:25];
-(
-  nwr["amenity"="pub"](${formattedBounds});
-);
-out center;`
+        const overpassQuery = `[out:json][timeout:25];(nwr["amenity"="pub"](${formattedBounds});); out center;`
 
         console.log("get pubs");
         const response = await fetch("https://overpass-api.de/api/interpreter", {
