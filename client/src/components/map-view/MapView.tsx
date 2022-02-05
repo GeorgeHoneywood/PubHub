@@ -6,6 +6,9 @@ import styles from './MapView.module.css';
 import {CurrentCrawl} from "../../contexts/CurrentCrawl";
 import {Position} from "../../models/Position";
 
+import { decodePolyline } from './helper'
+
+
 mapboxgl.accessToken = 'pk.eyJ1IjoiaG9uZXlmb3giLCJhIjoiY2t6OXVicGU2MThyOTJvbnh1a21idjhkZSJ9.LMyDoR9cFGG3HqAc9Zlwkg';
 
 
@@ -79,7 +82,6 @@ export function MapView() {
 
     }, []);
 
-
     let pubs: any[] = [];
 
     async function getPubs() {
@@ -127,6 +129,8 @@ export function MapView() {
     }
 
     async function getRoute(pubs: any[]) {
+        if (!map.current || pubs.length < 2) return;
+
         const response = await fetch("http://localhost:8000/route", {
             "headers": {
                 "content-type": "application/json"
@@ -141,7 +145,32 @@ export function MapView() {
         });
 
         const data = await response.json();
-        console.log(data);
+
+        let concatenatedLines: any[] = []
+
+        for (const encodedLine of data) {
+            concatenatedLines.push(...decodePolyline(encodedLine))
+        }
+
+        // FIXME: this only works the first time :(
+        if (!map.current.getLayer('mapline')) {
+            map.current.addLayer({
+                id: 'mapline',
+                type: 'line',
+                source: {
+                    type: 'geojson',
+                    data: {
+                        'type': 'Feature',
+                        'properties': {},
+                        'geometry': {
+                            'type': 'LineString',
+                            'coordinates': concatenatedLines,
+                        }
+                    },
+                },
+                paint: { 'line-width': 4, 'line-color': '#000' },
+            });
+        }
     }
 
     return (
