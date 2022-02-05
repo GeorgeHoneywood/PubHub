@@ -1,7 +1,6 @@
 import './App.css';
 import React, { useRef, useEffect, useState } from 'react';
 import mapboxgl, { Map } from 'mapbox-gl'; // eslint-disable-line import/no-webpack-loader-syntax
-import ReactMapGL, { Marker } from "react-map-gl";
 
 // this is fine :))
 mapboxgl.accessToken = 'pk.eyJ1IjoiaG9uZXlmb3giLCJhIjoiY2t6OXVicGU2MThyOTJvbnh1a21idjhkZSJ9.LMyDoR9cFGG3HqAc9Zlwkg';
@@ -37,7 +36,7 @@ function App() {
     );
 
     map.current.on('move', () => {
-      if (!map.current) return; // initialize map only once
+      if (!map.current) return;
       setLng(map.current.getCenter().lng);
       setLat(map.current.getCenter().lat);
       setZoom(map.current.getZoom());
