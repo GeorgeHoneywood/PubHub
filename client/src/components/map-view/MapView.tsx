@@ -1,9 +1,12 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, {useEffect, useRef, useState, useContext} from "react";
 import mapboxgl, { Map } from "mapbox-gl";
+
 import MapboxGeocoder from 'mapbox-gl-geocoder';
 import styles from './MapView.module.css';
 import {CurrentCrawl} from "../../contexts/CurrentCrawl";
+
+import { decodePolyline } from './helper'
 
 
 mapboxgl.accessToken = 'pk.eyJ1IjoiaG9uZXlmb3giLCJhIjoiY2t6OXVicGU2MThyOTJvbnh1a21idjhkZSJ9.LMyDoR9cFGG3HqAc9Zlwkg';
@@ -109,8 +112,10 @@ export function MapView() {
     }
 
     async function getRoute(pubs: any[]) {
+        if (!map.current || pubs.length < 2) return;
+
         const response = await fetch("http://localhost:8000/route", {
-            "headers":{
+            "headers": {
                 "content-type": "application/json"
             },
             "body": JSON.stringify({
@@ -123,7 +128,32 @@ export function MapView() {
         });
 
         const data = await response.json();
-        console.log(data);
+
+        let concatenatedLines: any[] = []
+
+        for (const encodedLine of data) {
+            concatenatedLines.push(...decodePolyline(encodedLine))
+        }
+
+        // FIXME: this only works the first time :(
+        if (!map.current.getLayer('mapline')) {
+            map.current.addLayer({
+                id: 'mapline',
+                type: 'line',
+                source: {
+                    type: 'geojson',
+                    data: {
+                        'type': 'Feature',
+                        'properties': {},
+                        'geometry': {
+                            'type': 'LineString',
+                            'coordinates': concatenatedLines,
+                        }
+                    },
+                },
+                paint: { 'line-width': 4, 'line-color': '#000' },
+            });
+        }
     }
 
     return (

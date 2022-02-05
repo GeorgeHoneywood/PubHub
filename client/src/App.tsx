@@ -1,6 +1,6 @@
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import React, {useState} from 'react';
+import {useState} from 'react';
 import {MapView} from './components/map-view/MapView';
 import {TopBar} from "./components/TopBar";
 import {CurrentCrawl} from "./contexts/CurrentCrawl";
