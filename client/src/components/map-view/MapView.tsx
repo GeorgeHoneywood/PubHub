@@ -83,7 +83,7 @@ export function MapView() {
                     });
                 }
                 let l = await getPubsInRegion(coordinates);
-                console.log(l);
+                setPubs(l);
             } else {
                 if (e.type !== 'draw.delete')
                     alert('Click the map to draw a polygon.');
@@ -92,12 +92,18 @@ export function MapView() {
         map.current.on('draw.create', updateArea);
         map.current.on('draw.delete', updateArea);
         map.current.on('draw.update', updateArea);
+        map.current.on('draw.move', updateArea);
 
     }, []);
 
     useEffect(() => {
+        if (map.current?.getLayer("route")) {
+            map.current.removeLayer("route");
+            map.current.removeSource("route");
+        }
         markers.forEach((value: Marker) => {value.remove()});
         let tempList: Marker[] = [];
+        setMarkers(() => []);
         pubs.forEach((value: PubData) => {
             if (!map.current) return;
             let m = new mapboxgl.Marker()
@@ -112,6 +118,7 @@ export function MapView() {
             tempList.push(m);
         })
         setMarkers(() => tempList);
+        retrieveRoute(pubs);
     }, [pubs]);
 
     async function retrievePubs() {
@@ -137,24 +144,26 @@ export function MapView() {
         }
 
         // FIXME: this only works the first time :(
-        if (!map.current.getLayer('mapline')) {
-            map.current.addLayer({
-                id: 'mapline',
-                type: 'line',
-                source: {
-                    type: 'geojson',
-                    data: {
-                        'type': 'Feature',
-                        'properties': {},
-                        'geometry': {
-                            'type': 'LineString',
-                            'coordinates': concatenatedLines,
-                        }
-                    },
-                },
-                paint: { 'line-width': 4, 'line-color': '#000' },
-            });
+        if (map.current?.getLayer("route")) {
+            map.current.removeLayer("route");
+            map.current.removeSource("route");
         }
+        map.current?.addLayer({
+            id: 'route',
+            type: 'line',
+            source: {
+                type: 'geojson',
+                data: {
+                    'type': 'Feature',
+                    'properties': {},
+                    'geometry': {
+                        'type': 'LineString',
+                        'coordinates': concatenatedLines,
+                    }
+                },
+            },
+            paint: { 'line-width': 4, 'line-color': '#000' },
+        });
     }
 
     return (

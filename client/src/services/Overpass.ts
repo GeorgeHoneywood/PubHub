@@ -33,9 +33,9 @@ export async function getPubs(bounds: LngLatBounds): Promise<PubData[]> {
 
 export async function getPubsInRegion(region: Position[]): Promise<PubData[]> {
     let pubs: PubData[] = [];
-    const overpassQuery = `[out:json][timeout:25];(nwr["amenity"~"pub|bar"](poly:"${region.map((value) => {
-        return [value.latitude, value.longitude];
-    }).slice(0, region.length - 1).join(" ").replaceAll(",", " ")}");); out center;`
+    const pos = region.map((value) => [value.longitude, value.latitude]).slice(0, region.length - 1).join(" ").replaceAll(",", " ");
+    console.log(pos)
+    const overpassQuery = `[out:json][timeout:25];(nwr["amenity"~"pub|bar"](poly:"${pos}");); out center;`
     console.log(overpassQuery);
 
     const response = await fetch("https://overpass-api.de/api/interpreter", {
