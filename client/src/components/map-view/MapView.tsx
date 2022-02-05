@@ -7,6 +7,7 @@ import {CurrentCrawl} from "../../contexts/CurrentCrawl";
 import {Position} from "../../models/Position";
 
 import { decodePolyline } from './helper'
+import {PubData} from "../../models/PubData";
 
 
 mapboxgl.accessToken = 'pk.eyJ1IjoiaG9uZXlmb3giLCJhIjoiY2t6OXVicGU2MThyOTJvbnh1a21idjhkZSJ9.LMyDoR9cFGG3HqAc9Zlwkg';
@@ -82,7 +83,7 @@ export function MapView() {
 
     }, []);
 
-    let pubs: any[] = [];
+    let pubs: PubData[] = [];
 
     async function getPubs() {
         if (!map.current || zoom < 13) return;
@@ -112,7 +113,7 @@ export function MapView() {
                 lon = element.center.lon;
             }
 
-            pubs.push({lon, lat, name: element.tags.name})
+            pubs.push({position: {longitude: lon, latitude: lat}, name: element.tags.name})
 
             new mapboxgl.Marker()
                 .setLngLat({lon, lat})
@@ -128,7 +129,7 @@ export function MapView() {
         await getRoute(pubs)
     }
 
-    async function getRoute(pubs: any[]) {
+    async function getRoute(pubs: PubData[]) {
         if (!map.current || pubs.length < 2) return;
 
         const response = await fetch("http://localhost:8000/route", {
@@ -137,8 +138,8 @@ export function MapView() {
             },
             "body": JSON.stringify({
                 locations: pubs.map(pub => ({
-                    lat: pub.lat,
-                    lon: pub.lon
+                    lat: pub.position.latitude,
+                    lon: pub.position.longitude
                 }))
             }),
             "method": "POST",
