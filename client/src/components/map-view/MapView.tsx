@@ -57,7 +57,7 @@ export function MapView() {
         });
         map.current.addControl(geocoder); // https://docs.mapbox.com/help/tutorials/local-search-geocoding-api/#the-bbox-parameter
 
-    }, [lat, lng, zoom]);
+    }, []);
 
     let pubs: any[] = [];
 
