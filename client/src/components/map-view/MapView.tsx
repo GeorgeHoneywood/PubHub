@@ -26,6 +26,7 @@ export function MapView() {
     const [lng, setLng] = useState(-0.11);
     const [lat, setLat] = useState(51.5);
     const [zoom, setZoom] = useState(9);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         //if (map.current) return; // initialize map only once
@@ -49,6 +50,7 @@ export function MapView() {
             })
         );
 
+        // TODO: leading: true should only be when come into zoom
         const debouncedGetPubs = debounce(retrievePubs, 5 * 1000, { leading: true, trailing: true });
 
         map.current.on('move', () => {
@@ -124,6 +126,7 @@ export function MapView() {
     async function retrievePubs() {
         if (!map.current) return;
         console.log("getting the pubs in the bounds")
+        setLoading(true);
 
         const pubs = await getPubs(map.current?.getBounds());
         setPubs((prevValue) => {
@@ -163,12 +166,14 @@ export function MapView() {
                 paint: { 'line-width': 4, 'line-color': '#000' },
             });
         }
+
+        setLoading(false);
     }
 
     return (
         <>
             <div className={styles.sidebar} onClick={retrievePubs}>
-                Longitude: {lng} | Latitude: {lat} | Zoom: {zoom}
+                Longitude: {lng} | Latitude: {lat} | Zoom: {zoom} {zoom < 14 ? "| Zoom in to see pubs" : ""} {loading ? "| Loading..." : ""} {pubs.length > 0 ? `| ${pubs.length} pubs found` : ""}
             </div>
             <div ref={mapContainer} className="map-container" />
         </>
