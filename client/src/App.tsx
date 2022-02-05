@@ -1,26 +1,105 @@
-import React from 'react';
-import logo from './logo.svg';
 import './App.css';
+import React, { useRef, useEffect, useState } from 'react';
+import mapboxgl, { Map } from 'mapbox-gl'; // eslint-disable-line import/no-webpack-loader-syntax
+
+// this is fine :))
+mapboxgl.accessToken = 'pk.eyJ1IjoiaG9uZXlmb3giLCJhIjoiY2t6OXVicGU2MThyOTJvbnh1a21idjhkZSJ9.LMyDoR9cFGG3HqAc9Zlwkg';
+
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+  const mapContainer = useRef<HTMLDivElement | null>(null);
+  const map = useRef<Map | null>(null);
+  const [lng, setLng] = useState(-0.11);
+  const [lat, setLat] = useState(51.5);
+  const [zoom, setZoom] = useState(9);
+
+  useEffect(() => {
+    if (map.current) return; // initialize map only once
+
+    map.current = new mapboxgl.Map({
+      container: mapContainer.current || "",
+      style: 'mapbox://styles/mapbox/streets-v11',
+      center: [lng, lat],
+      zoom,
+    });
+
+    map.current.addControl(
+      new mapboxgl.GeolocateControl({
+        positionOptions: {
+          enableHighAccuracy: true
+        },
+        // When active the map will receive updates to the device's location as it changes.
+        trackUserLocation: true,
+        // Draw an arrow next to the location dot to indicate which direction the device is heading.
+        showUserHeading: true
+      })
+    );
+
+    map.current.on('move', () => {
+      if (!map.current) return;
+      setLng(map.current.getCenter().lng);
+      setLat(map.current.getCenter().lat);
+      setZoom(map.current.getZoom());
+    });
+  });
+
+  let pubs: any[] = [];
+
+  async function getPubs() {
+    if (!map.current) return;
+
+    const bounds = map.current?.getBounds()
+    const formattedBounds = `${bounds?.getSouth()},${bounds?.getWest()},${bounds?.getNorth()},${bounds?.getEast()}`
+    const overpassQuery = `
+[out:json][timeout:25];
+(
+  nwr["amenity"="pub"](${formattedBounds});
+);
+out center;`
+
+    console.log("get pubs");
+    const response = await fetch("https://overpass-api.de/api/interpreter", {
+      "body": `data=${encodeURIComponent(overpassQuery)}`,
+      "method": "POST",
+    });
+
+    const data = await response.json();
+    console.log(data);
+    
+    for (const element of data.elements) {
+      let lat = 0
+      let lon = 0
+
+      if (element.type === 'node') {
+        lat = element.lat;
+        lon = element.lon;
+      } else {
+        lat = element.center.lat;
+        lon = element.center.lon;
+      }
+
+      pubs.push({lon, lat, name: element.tags.name})
+
+      new mapboxgl.Marker()
+        .setLngLat({ lon, lat })
+        .setPopup(
+          new mapboxgl.Popup({ offset: 25 }) // add popups
+            .setHTML(
+              `<h3>${(element.tags && element.tags.name) || "N/A"}</h3>`
+            )
+        )
+        .addTo(map.current);
+    }
+  }
+
+return (
+  <div className="App">
+    <div className="sidebar" onClick={getPubs}>
+      Longitude: {lng} | Latitude: {lat} | Zoom: {zoom}
     </div>
-  );
+    <div ref={mapContainer} className="map-container" />
+  </div>
+);
 }
 
 export default App;
