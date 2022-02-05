@@ -78,7 +78,7 @@ WSGI_APPLICATION = 'crawler.wsgi.application'
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
-    "http://pub-hub.netlify.com",
+    "https://pub-hub.netlify.app",
 ]
 
 # Database
