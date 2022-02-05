@@ -1,6 +1,7 @@
 import React, {useEffect, useRef, useState} from "react";
 import mapboxgl, {Map} from "mapbox-gl";
 import MapboxGeocoder from 'mapbox-gl-geocoder';
+import styles from './MapView.module.css';
 
 
 mapboxgl.accessToken = 'pk.eyJ1IjoiaG9uZXlmb3giLCJhIjoiY2t6OXVicGU2MThyOTJvbnh1a21idjhkZSJ9.LMyDoR9cFGG3HqAc9Zlwkg';
@@ -14,7 +15,7 @@ export function MapView() {
     const [zoom, setZoom] = useState(9);
 
     useEffect(() => {
-        if (map.current) return; // initialize map only once
+        //if (map.current) return; // initialize map only once
 
         map.current = new mapboxgl.Map({
             container: mapContainer.current || "",
@@ -42,10 +43,6 @@ export function MapView() {
             setZoom(map.current.getZoom());
         });
 
-        const marker = new mapboxgl.Marker() // Initialize a new marker
-            .setLngLat([lng, lat]) // Marker [lng, lat] coordinates
-            .addTo(map.current); // Add the marker to the map
-
         const geocoder = new MapboxGeocoder({
             // Initialize the geocoder
             accessToken: mapboxgl.accessToken, // Set the access token
@@ -60,12 +57,12 @@ export function MapView() {
         });
         map.current.addControl(geocoder); // https://docs.mapbox.com/help/tutorials/local-search-geocoding-api/#the-bbox-parameter
 
-    });
+    }, []);
 
     let pubs: any[] = [];
 
     async function getPubs() {
-        if (!map.current) return;
+        if (!map.current || zoom < 13) return;
 
         const bounds = map.current?.getBounds()
         const formattedBounds = `${bounds?.getSouth()},${bounds?.getWest()},${bounds?.getNorth()},${bounds?.getEast()}`
@@ -113,7 +110,7 @@ out center;`
 
     return (
         <>
-            <div className="sidebar" onClick={getPubs}>
+            <div className={styles.sidebar} onClick={getPubs}>
                 Longitude: {lng} | Latitude: {lat} | Zoom: {zoom}
             </div>
             <div ref={mapContainer} className="map-container"/>
