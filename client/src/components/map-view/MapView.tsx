@@ -1,5 +1,5 @@
-import React, {useEffect, useRef, useState} from "react";
-import mapboxgl, {Map} from "mapbox-gl";
+import React, { useEffect, useRef, useState } from "react";
+import mapboxgl, { Map } from "mapbox-gl";
 import MapboxGeocoder from 'mapbox-gl-geocoder';
 import styles from './MapView.module.css';
 
@@ -94,18 +94,38 @@ out center;`
                 lon = element.center.lon;
             }
 
-            pubs.push({lon, lat, name: element.tags.name})
+            pubs.push({ lon, lat, name: element.tags.name })
 
             new mapboxgl.Marker()
-                .setLngLat({lon, lat})
+                .setLngLat({ lon, lat })
                 .setPopup(
-                    new mapboxgl.Popup({offset: 25}) // add popups
+                    new mapboxgl.Popup({ offset: 25 }) // add popups
                         .setHTML(
                             `<h3>${(element.tags && element.tags.name) || "N/A"}</h3>`
                         )
                 )
                 .addTo(map.current);
         }
+
+        await getRoute(pubs)
+    }
+
+    async function getRoute(pubs: any[]) {
+        const response = await fetch("http://localhost:8000/route", {
+            "headers":{
+                "content-type": "application/json"
+            },
+            "body": JSON.stringify({
+                locations: pubs.map(pub => ({
+                    lat: pub.lat,
+                    lon: pub.lon
+                }))
+            }),
+            "method": "POST",
+        });
+
+        const data = await response.json();
+        console.log(data);
     }
 
     return (
@@ -113,7 +133,7 @@ out center;`
             <div className={styles.sidebar} onClick={getPubs}>
                 Longitude: {lng} | Latitude: {lat} | Zoom: {zoom}
             </div>
-            <div ref={mapContainer} className="map-container"/>
+            <div ref={mapContainer} className="map-container" />
         </>
     )
 }
