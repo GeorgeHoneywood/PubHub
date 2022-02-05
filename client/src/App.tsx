@@ -43,14 +43,63 @@ function App() {
     });
   });
 
-  return (
-    <div className="App">
-      <div className="sidebar">
-        Longitude: {lng} | Latitude: {lat} | Zoom: {zoom}
-      </div>
-      <div ref={mapContainer} className="map-container" />
+  let pubs: any[] = [];
+
+  async function getPubs() {
+    if (!map.current) return;
+
+    const bounds = map.current?.getBounds()
+    const formattedBounds = `${bounds?.getSouth()},${bounds?.getWest()},${bounds?.getNorth()},${bounds?.getEast()}`
+    const overpassQuery = `
+[out:json][timeout:25];
+(
+  nwr["amenity"="pub"](${formattedBounds});
+);
+out center;`
+
+    console.log("get pubs");
+    const response = await fetch("https://overpass-api.de/api/interpreter", {
+      "body": `data=${encodeURIComponent(overpassQuery)}`,
+      "method": "POST",
+    });
+
+    const data = await response.json();
+    console.log(data);
+    
+    for (const element of data.elements) {
+      let lat = 0
+      let lon = 0
+
+      if (element.type === 'node') {
+        lat = element.lat;
+        lon = element.lon;
+      } else {
+        lat = element.center.lat;
+        lon = element.center.lon;
+      }
+
+      pubs.push({lon, lat, name: element.tags.name})
+
+      new mapboxgl.Marker()
+        .setLngLat({ lon, lat })
+        .setPopup(
+          new mapboxgl.Popup({ offset: 25 }) // add popups
+            .setHTML(
+              `<h3>${(element.tags && element.tags.name) || "N/A"}</h3>`
+            )
+        )
+        .addTo(map.current);
+    }
+  }
+
+return (
+  <div className="App">
+    <div className="sidebar" onClick={getPubs}>
+      Longitude: {lng} | Latitude: {lat} | Zoom: {zoom}
     </div>
-  );
+    <div ref={mapContainer} className="map-container" />
+  </div>
+);
 }
 
 export default App;
