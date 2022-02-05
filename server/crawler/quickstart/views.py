@@ -1,3 +1,4 @@
+import urllib.parse
 from typing import OrderedDict
 
 from django.shortcuts import render
@@ -25,11 +26,12 @@ class TripView(APIView):
                     pass
                 else:
                     out[k] = v
-            url = f"{settings.VALHALLA_ENDPOINT}optimized_route?json={json.dumps(out)}"
-            res = requests.get(url)
+            res = requests.get(f"{settings.VALHALLA_ENDPOINT}optimized_route?json={json.dumps(out)}")
             if res.status_code == requests.codes.ok:
-                response_data = ValhallaResponseSerializer(data=res.json())
+                response_data = ValhallaResponseSerializer(data=res.json()['trip'])
                 if response_data.is_valid():
-                    shapes = [leg.shape for leg in response_data.data.legs]
+                    shapes = [leg['shape'] for leg in response_data.validated_data['legs']]
                     return Response(status=200, data=shapes)
-        return Response(status=401, data=request_data.errors or response_data or "")
+            else:
+                return Response(status=400, data=res.text)
+        return Response(status=401, data=request_data.errors or response_data.errors or "")

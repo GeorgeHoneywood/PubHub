@@ -29,9 +29,9 @@ class LegsSerializers(serializers.Serializer):
 
 class ValhallaResponseSerializer(serializers.Serializer):
     legs = LegsSerializers(many=True)
-    status_message = serializers.CharField()
-    status = serializers.IntegerField()
-    units = serializers.ChoiceField(choices=['miles', 'kilometers'])
+    status_message = serializers.CharField(required=False)
+    status = serializers.IntegerField(required=False)
+    units = serializers.ChoiceField(choices=['miles', 'kilometers'], required=False)
 
     class Meta:
         fields = ('legs', 'status_message', 'status', 'units')
