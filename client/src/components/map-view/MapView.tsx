@@ -52,26 +52,31 @@ export function MapView() {
 
         const draw = new MapboxDraw({
             displayControlsDefault: false,
-// Select which mapbox-gl-draw control buttons to add to the map.
+            // Select which mapbox-gl-draw control buttons to add to the map.
             controls: {
                 polygon: true,
                 trash: true
             },
-// Set mapbox-gl-draw to draw by default.
-// The user does not have to click the polygon control button first.
-            defaultMode: 'draw_polygon'
+            // Set mapbox-gl-draw to draw by default.
+            // The user does not have to click the polygon control button first.
+            defaultMode: 'draw_polygon',
         });
         map.current.addControl(draw);
 
         const updateArea = (e) => {
             const data = draw.getAll();
             if (data.features.length > 0) {
-                let coordinates: Position[] = [];
-                data['features'][0]['geometry']['coordinates'][0].forEach((val) => {
-                    coordinates.push({latitude: val[0], longitude: val[1]} as Position)
+                let index = data.features.length - 1;
+                const coordinates = data.features[index].geometry.coordinates[0].map((value) => {
+                    return {latitude: value[0], longitude: value[1]} as Position;
                 });
                 console.log(coordinates);
                 // Restrict the area to 2 decimal points.
+                if (data.features.length > 1) {
+                    data.features.forEach((value, i) => {
+                       if (i < index) draw.delete(value.id);
+                    });
+                }
             } else {
                 if (e.type !== 'draw.delete')
                     alert('Click the map to draw a polygon.');
