@@ -1,16 +1,16 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, {useEffect, useRef, useState, useContext} from "react";
-import mapboxgl, { Map } from "mapbox-gl";
-import MapboxGeocoder from 'mapbox-gl-geocoder';
+import mapboxgl, {Map} from "mapbox-gl";
+import MapboxDraw from "@mapbox/mapbox-gl-draw";
 import styles from './MapView.module.css';
 import {CurrentCrawl} from "../../contexts/CurrentCrawl";
-
+import {Position} from "../../models/Position";
 
 mapboxgl.accessToken = 'pk.eyJ1IjoiaG9uZXlmb3giLCJhIjoiY2t6OXVicGU2MThyOTJvbnh1a21idjhkZSJ9.LMyDoR9cFGG3HqAc9Zlwkg';
 
 
 export function MapView() {
-    const { currentCrawl } = useContext(CurrentCrawl);
+    const {currentCrawl} = useContext(CurrentCrawl);
     const mapContainer = useRef<HTMLDivElement | null>(null);
     const map = useRef<Map | null>(null);
     const [lng, setLng] = useState(-0.11);
@@ -46,21 +46,39 @@ export function MapView() {
             setZoom(map.current.getZoom());
         });
 
-        const geocoder = new MapboxGeocoder({
-            // Initialize the geocoder
-            accessToken: mapboxgl.accessToken, // Set the access token
-            mapboxgl: mapboxgl, // Set the mapbox-gl instance
-            marker: false, // Do not use the default marker style
-            placeholder: 'Search here', // Placeholder text for the search bar
-            //bbox: [-122.30937, 37.84214, -122.23715, 37.89838], // Boundary for Berkeley
-            proximity: {
-                longitude: lng,
-                latitude: lat
-            }
+        const draw = new MapboxDraw({
+            displayControlsDefault: false,
+// Select which mapbox-gl-draw control buttons to add to the map.
+            controls: {
+                polygon: true,
+                trash: true
+            },
+// Set mapbox-gl-draw to draw by default.
+// The user does not have to click the polygon control button first.
+            defaultMode: 'draw_polygon'
         });
-        map.current.addControl(geocoder); // https://docs.mapbox.com/help/tutorials/local-search-geocoding-api/#the-bbox-parameter
+        map.current.addControl(draw);
+
+        const updateArea = (e) => {
+            const data = draw.getAll();
+            if (data.features.length > 0) {
+                let coordinates: Position[] = [];
+                data['features'][0]['geometry']['coordinates'][0].forEach((val) => {
+                    coordinates.push({latitude: val[0], longitude: val[1]} as Position)
+                });
+                console.log(coordinates);
+                // Restrict the area to 2 decimal points.
+            } else {
+                if (e.type !== 'draw.delete')
+                    alert('Click the map to draw a polygon.');
+            }
+        };
+        map.current.on('draw.create', updateArea);
+        map.current.on('draw.delete', updateArea);
+        map.current.on('draw.update', updateArea);
 
     }, []);
+
 
     let pubs: any[] = [];
 
@@ -92,12 +110,12 @@ export function MapView() {
                 lon = element.center.lon;
             }
 
-            pubs.push({ lon, lat, name: element.tags.name })
+            pubs.push({lon, lat, name: element.tags.name})
 
             new mapboxgl.Marker()
-                .setLngLat({ lon, lat })
+                .setLngLat({lon, lat})
                 .setPopup(
-                    new mapboxgl.Popup({ offset: 25 }) // add popups
+                    new mapboxgl.Popup({offset: 25}) // add popups
                         .setHTML(
                             `<h3>${(element.tags && element.tags.name) || "N/A"}</h3>`
                         )
@@ -110,7 +128,7 @@ export function MapView() {
 
     async function getRoute(pubs: any[]) {
         const response = await fetch("http://localhost:8000/route", {
-            "headers":{
+            "headers": {
                 "content-type": "application/json"
             },
             "body": JSON.stringify({
@@ -131,7 +149,7 @@ export function MapView() {
             <div className={styles.sidebar} onClick={getPubs}>
                 Longitude: {lng} | Latitude: {lat} | Zoom: {zoom}
             </div>
-            <div ref={mapContainer} className="map-container" />
+            <div ref={mapContainer} className="map-container"/>
         </>
     )
 }
