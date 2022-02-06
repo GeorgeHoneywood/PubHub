@@ -77,6 +77,11 @@ export function MapView() {
             }
         });
 
+        if (map.current.getZoom() > 14) {
+            setLoadingContext(true)
+            debouncedGetPubs()
+        }
+
         const updateArea = async (e) => {
             const data = draw.getAll();
             if (data.features.length > 0) {
