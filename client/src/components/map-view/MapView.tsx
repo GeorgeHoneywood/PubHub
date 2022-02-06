@@ -13,6 +13,7 @@ import { LoadingContext } from "../../contexts/LoadingContext";
 import { Toast, ToastContainer } from "react-bootstrap";
 import {MaxPubs} from "../../contexts/MaxPubs";
 
+
 mapboxgl.accessToken = 'pk.eyJ1IjoiaG9uZXlmb3giLCJhIjoiY2t6OXVicGU2MThyOTJvbnh1a21idjhkZSJ9.LMyDoR9cFGG3HqAc9Zlwkg';
 
 export function MapView() {
@@ -149,7 +150,11 @@ export function MapView() {
         currentCrawl.pubs.forEach((value: PubData, index: number) => {
             if (!map.current) return;
 
-            let m = new mapboxgl.Marker({
+            const el: HTMLDivElement = document.createElement('div');
+            el.className += index === 0 ? styles.markerFirst : styles.marker;
+            el.innerHTML = `<p>${String(index + 1)}</p>`;
+
+            let m = new mapboxgl.Marker(el, {
                 color: index === 0 ? "#0d6efd" : "#ffcc4d",
                 scale: index === 0 ? 1 : 0.8,
             })

@@ -1,3 +1,28 @@
 .mapContainer {
   height: 100%;
 }
+
+
+.marker {
+  color: white;
+  width: 1.5em;
+  height: 1.5em;
+  font-size: 2em;
+  background-image: url("../../../public/Yellow_icon.svg");
+  background-size: cover;
+  background-position: 0 0 ;
+}
+
+.markerFirst {
+  color: white;
+  width: 1.5em;
+  height: 1.5em;
+  font-size: 2em;
+  background-size: cover;
+  background-position: 0 0 ;
+  background-image: url("../../../public/Blue_icon.svg");
+}
+
+.marker p, .markerFirst p {
+  margin-top: 6.6px;
+}

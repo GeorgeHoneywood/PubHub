@@ -30,7 +30,7 @@ export function PubList(props: any) {
                     <p>{currentCrawl.pubs.length} pubs - {currentCrawl.distance.toFixed(2)} km - takes {(currentCrawl.time + (10 * currentCrawl.pubs.length)).toFixed(0)} mins</p>
                     <ListGroup numbered={true}>
                         {currentCrawl.pubs.map((value, index) => {
-                            return <ListGroup.Item>{value.name || `Pub ${index + 1}`}</ListGroup.Item>
+                            return <ListGroup.Item>{index + 1}.  {value.name || `Pub ${index + 1}`}</ListGroup.Item>
                         })}
                     </ListGroup>
                 </Offcanvas.Body>
