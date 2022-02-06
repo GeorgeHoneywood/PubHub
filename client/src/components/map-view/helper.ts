@@ -1,5 +1,7 @@
 // This is adapted from the implementation in Project-OSRM
 // https://github.com/DennisOSRM/Project-OSRM-Web/blob/master/WebContent/routing/OSRM.RoutingGeometry.js
+import {Position} from "../../models/Position";
+
 function decodePolyline(str: string, precision: number = 6) {
   var index = 0,
     lat = 0,

@@ -1,5 +1,17 @@
 .App {
   text-align: center;
+  display: flex;
+  flex-flow: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.App .TopBar {
+  flex: 0 1 auto;
+}
+
+.App .MapView {
+  flex: 1 1 auto;
 }
 
 .App-logo {

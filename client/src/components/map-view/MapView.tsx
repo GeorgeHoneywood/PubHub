@@ -11,12 +11,13 @@ import {decodePolyline} from './helper'
 import {PubData} from "../../models/PubData";
 import {getPubs, getPubsInRegion} from "../../services/Overpass";
 import {getRoute} from "../../services/Backend";
+import {LoadingContext} from "../../contexts/LoadingContext";
 
 mapboxgl.accessToken = 'pk.eyJ1IjoiaG9uZXlmb3giLCJhIjoiY2t6OXVicGU2MThyOTJvbnh1a21idjhkZSJ9.LMyDoR9cFGG3HqAc9Zlwkg';
 
 export function MapView() {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const {currentCrawl} = useContext(CurrentCrawl);
+    const {currentCrawl, setCurrentCrawl} = useContext(CurrentCrawl);
     const [pubs, setPubs] = useState([] as PubData[]);
     const [markers, setMarkers] = useState([] as Marker[]);
     const mapContainer = useRef<HTMLDivElement | null>(null);
@@ -24,11 +25,11 @@ export function MapView() {
     const [lng, setLng] = useState(-0.11);
     const [lat, setLat] = useState(51.5);
     const [zoom, setZoom] = useState(9);
-    const [loading, setLoading] = useState(false);
+    const {loadingContext, setLoadingContext} = useContext(LoadingContext);
+    // TODO: leading: true should only be when come into zoom
+    const debouncedGetPubs = debounce(retrievePubs, 2 * 1000, {trailing: true});
 
     useEffect(() => {
-        //if (map.current) return; // initialize map only once
-
         map.current = new mapboxgl.Map({
             container: mapContainer.current || "",
             style: 'mapbox://styles/mapbox/streets-v11',
@@ -46,17 +47,15 @@ export function MapView() {
             })
         );
 
-        // TODO: leading: true should only be when come into zoom
-        const debouncedGetPubs = debounce(retrievePubs, 5 * 1000, {leading: true, trailing: true});
-
-        map.current.on('move', () => {
+        map.current.on('move', async () => {
             if (!map.current) return;
             setLng(map.current.getCenter().lng);
             setLat(map.current.getCenter().lat);
             setZoom(map.current.getZoom());
 
             if (map.current.getZoom() > 14) {
-                debouncedGetPubs()
+                setLoadingContext(true)
+                await debouncedGetPubs()
             }
         });
 
@@ -123,7 +122,6 @@ export function MapView() {
 
     async function retrievePubs() {
         if (!map.current) return;
-        setLoading(true);
         const pubs = await getPubs(map.current?.getBounds());
         setPubs(pubs);
     }
@@ -158,16 +156,17 @@ export function MapView() {
             },
             paint: {'line-width': 4, 'line-color': '#000'},
         });
-        setLoading(false);
+        setCurrentCrawl({route: concatenatedLines.map(value => ({longitude: value[0], latitude: value[1]} as Position)), pubs: pubs});
+        setLoadingContext(false);
     }
 
     return (
         <>
             <div className={styles.sidebar} onClick={retrievePubs}>
                 Longitude: {lng} | Latitude: {lat} |
-                Zoom: {zoom} {zoom < 14 ? "| Zoom in to see pubs" : ""} {loading ? "| Loading..." : ""} {pubs.length > 0 ? `| ${pubs.length} pubs found` : ""}
+                Zoom: {zoom} {zoom < 14 ? "| Zoom in to see pubs" : ""} {loadingContext ? "| Loading..." : ""} {pubs.length > 0 ? `| ${pubs.length} pubs found` : ""}
             </div>
-            <div ref={mapContainer} className="map-container"/>
+            <div ref={mapContainer} className={styles.mapContainer}/>
         </>
     )
 }
