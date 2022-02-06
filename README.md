@@ -9,7 +9,7 @@ A web app for generating the most efficient pub crawl routes, using the Valhalla
 We were inspired by the wealth of open data provided by OpenStreetMap, and decided we wanted to create a web application that utilized this tool.
 
 ## What it does
-The web app displays the shortest path between a series of pub and bars within a given area. This may be within the currently viewed area or a polygon drawn out by the user. 
+The web app displays the shortest path between a series of pub and bars within a given area. This may be the currently viewed area or a polygon drawn out by the user. 
 
 ## How we built it
 * Frontend built using React, Mapbox-GL and Bootstrap, hosted on Netlify, behind a domain.com domain name
