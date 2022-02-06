@@ -20,7 +20,7 @@ export function PubList(props: any) {
                     Itinerary
                 </Button>
             </div>
-            <Offcanvas show={show} onHide={handleClose} placement={window.innerWidth <= 600 ? 'bottom' : 'start'} className={styles.tallOffcanvas}>
+            <Offcanvas show={show} onHide={handleClose} placement={window.innerWidth <= 600 ? 'bottom' : 'start'} className={styles.tallOffcanvas} backdrop={false}>
                 <Offcanvas.Header closeButton>
                     <Offcanvas.Title>Itinerary</Offcanvas.Title>
                 </Offcanvas.Header>
