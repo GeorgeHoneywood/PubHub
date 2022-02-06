@@ -12,7 +12,7 @@ import {PubList} from "./components/pub-list/PubList";
 import {MaxPubs} from './contexts/MaxPubs';
 
 function App() {
-    const [currentCrawl, setCurrentCrawl] = useState({pubs: [], route: []} as CurrentCrawlModel);
+    const [currentCrawl, setCurrentCrawl] = useState({pubs: [], route: [], distance: 0, time: 0} as CurrentCrawlModel);
     const [loadingContext, setLoadingContext] = useState(false);
     const [maxPubs, setMaxPubs] = useState(50);
     const value = {currentCrawl, setCurrentCrawl};
