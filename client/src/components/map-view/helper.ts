@@ -1,5 +1,6 @@
 // This is adapted from the implementation in Project-OSRM
 // https://github.com/DennisOSRM/Project-OSRM-Web/blob/master/WebContent/routing/OSRM.RoutingGeometry.js
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import {Position} from "../../models/Position";
 
 function decodePolyline(str: string, precision: number = 6) {
