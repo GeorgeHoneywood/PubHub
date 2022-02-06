@@ -12,6 +12,7 @@ import {PubData} from "../../models/PubData";
 import {getPubs, getPubsInRegion} from "../../services/Overpass";
 import {getRoute} from "../../services/Backend";
 import {LoadingContext} from "../../contexts/LoadingContext";
+import {Toast, ToastContainer} from "react-bootstrap";
 
 mapboxgl.accessToken = 'pk.eyJ1IjoiaG9uZXlmb3giLCJhIjoiY2t6OXVicGU2MThyOTJvbnh1a21idjhkZSJ9.LMyDoR9cFGG3HqAc9Zlwkg';
 
@@ -25,6 +26,7 @@ export function MapView() {
     const [lng, setLng] = useState(-0.11);
     const [lat, setLat] = useState(51.5);
     const [zoom, setZoom] = useState(9);
+    const [show, setShow] = useState(true);
     const {loadingContext, setLoadingContext} = useContext(LoadingContext);
     // TODO: leading: true should only be when come into zoom
     const debouncedGetPubs = debounce(retrievePubs, 2 * 1000, {trailing: true});
@@ -118,7 +120,12 @@ export function MapView() {
             tempList.push(m);
         })
         setMarkers(() => tempList);
-        retrieveRoute(pubs);
+        if (pubs.length < 50) {
+            retrieveRoute(pubs);
+        } else {
+            setShow(true);
+            setLoadingContext(false)
+        }
     }, [pubs]);
 
     async function retrievePubs() {
@@ -129,7 +136,6 @@ export function MapView() {
 
     async function retrieveRoute(pubs: PubData[]) {
         if (!map.current || pubs.length < 2) return;
-
         const data = await getRoute(pubs);
 
         let concatenatedLines: any[] = []
@@ -163,6 +169,20 @@ export function MapView() {
 
     return (
         <>
+            <ToastContainer position="top-end" className="p-3">
+                <Toast onClose={() => setShow(false)} show={show} delay={3000} autohide>
+                    <Toast.Header>
+                        <img
+                            src="holder.js/20x20?text=%20"
+                            className="rounded me-2"
+                            alt=""
+                        />
+                        <strong className="me-auto">Bootstrap</strong>
+                        <small>11 mins ago</small>
+                    </Toast.Header>
+                    <Toast.Body>Woohoo, you're reading this text in a Toast!</Toast.Body>
+                </Toast>
+            </ToastContainer>
             <div className={styles.sidebar} onClick={retrievePubs}>
                 Longitude: {lng} | Latitude: {lat} |
                 Zoom: {zoom} {zoom < 14 ? "| Zoom in to see pubs" : ""} {loadingContext ? "| Loading..." : ""} {pubs.length > 0 ? `| ${pubs.length} pubs found` : ""}

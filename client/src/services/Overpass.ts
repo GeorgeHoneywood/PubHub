@@ -4,7 +4,9 @@ import {Position} from "../models/Position";
 
 export async function getPubs(bounds: LngLatBounds): Promise<PubData[]> {
     let pubs: PubData[] = [];
-    const formattedBounds = `${bounds?.getSouth()},${bounds?.getWest()},${bounds?.getNorth()},${bounds?.getEast()}`
+    const heightMargin = Math.abs(bounds?.getNorth() - bounds?.getSouth()) * 0.1;
+    const widthMargin = Math.abs(bounds?.getWest() - bounds?.getEast()) * 0.1;
+    const formattedBounds = `${bounds?.getSouth() + heightMargin},${bounds?.getWest() + widthMargin},${bounds?.getNorth() - heightMargin},${bounds?.getEast() - widthMargin}`
     const overpassQuery = `[out:json][timeout:25];(nwr["amenity"~"pub|bar"](${formattedBounds});); out center;`
 
     const response = await fetch("https://overpass-api.de/api/interpreter", {
