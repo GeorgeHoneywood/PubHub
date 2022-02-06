@@ -83,6 +83,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3000",
     "https://pub-hub.netlify.app",
     "https://pub-hub.tech",
+    "http://pub-hub.tech",
 ]
 
 # Database
