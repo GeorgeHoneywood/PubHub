@@ -3,7 +3,7 @@ import { PubData } from "../models/PubData";
 import { Position } from "../models/Position";
 
 const OVERPASS_URL = "https://overpass-api.de/api/interpreter"
-const OVERPASS_BASE_QUERY = `[out:json][timeout:25];(nwr["amenity"~"pub|bar"](%BOUNDS%);); out center;`
+const OVERPASS_BASE_QUERY = `[out:json][timeout:25];(nwr["amenity"~"^pub$|^bar$"](%BOUNDS%);); out center;`
 
 export async function getPubs(bounds: LngLatBounds): Promise<PubData[]> {
     const heightMargin = Math.abs(bounds?.getNorth() - bounds?.getSouth()) * 0.1;
