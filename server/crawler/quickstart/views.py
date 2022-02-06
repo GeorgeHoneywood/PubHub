@@ -26,6 +26,9 @@ class TripView(APIView):
                     pass
                 else:
                     out[k] = v
+
+            print(out)
+            out["locations"].append(out["locations"][0])
             res = requests.get(f"{settings.VALHALLA_ENDPOINT}optimized_route?json={json.dumps(out)}")
             if res.status_code == requests.codes.ok:
                 response_data = ValhallaResponseSerializer(data=res.json()['trip'])
