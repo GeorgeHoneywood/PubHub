@@ -146,7 +146,7 @@ export function MapView() {
             if (!map.current) return;
 
             let m = new mapboxgl.Marker({
-                color: index === 0 ? "red" : "#3fb1ce",
+                color: index === 0 ? "#0d6efd" : "#ffcc4d",
                 scale: index === 0 ? 1 : 0.8,
             })
                 .setLngLat({ lon: value.position.longitude, lat: value.position.latitude })
@@ -194,7 +194,7 @@ export function MapView() {
                     }
                 },
             },
-            paint: { 'line-width': 4, 'line-color': '#000' },
+            paint: { 'line-width': 4, 'line-color': '#ffcc4d' },
         });
         setCurrentCrawl(data);
         setLoadingContext(false);
