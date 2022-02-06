@@ -49,7 +49,7 @@ async function parseOverpassResponse(response: any): Promise<PubData[]> {
         pubs.push({
             position: { longitude: lon, latitude: lat },
             name: element.tags.name,
-            openingHours: element.tags.opening_hours,
+            openingHours: element.tags.opening_hours || null,
         })
     }
 
