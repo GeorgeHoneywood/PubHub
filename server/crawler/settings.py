@@ -26,7 +26,10 @@ SECRET_KEY = 'django-insecure-fgtjbs(h89jrh(2v%4d7e31v$%f8@qs(0#s&rlklcpit*8)7cf
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "localhost",
+    "api.pub-hub.tech",
+]
 
 
 # Application definition
@@ -79,6 +82,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "https://pub-hub.netlify.app",
+    "https://pub-hub.tech",
 ]
 
 # Database
