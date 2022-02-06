@@ -31,5 +31,7 @@ export async function getRoute(pubs: PubData[]): Promise<CurrentCrawlModel> {
             distance: value.distance,
             time: value.time
         } as CurrentCrawlModel);
+    }).catch(() => {
+        return {} as CurrentCrawlModel;
     });
 }

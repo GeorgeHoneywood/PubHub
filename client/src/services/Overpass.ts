@@ -31,18 +31,20 @@ async function queryOverpass(bounds: string): Promise<PubData[]> {
 }
 
 async function parseOverpassResponse(response: any): Promise<PubData[]> {
-    const data = await response.json();
+    return await response.json().then((data) => {
+        let pubs: PubData[] = [];
+        for (const element of data.elements) {
+            const lat = element.type === 'node' ? element.lat : element.center.lat;
+            const lon = element.type === 'node' ? element.lon : element.center.lon;
+            pubs.push({
+                position: { longitude: lon, latitude: lat },
+                name: element.tags.name,
+                openingHours: element.tags.opening_hours || null,
+            })
+        }
 
-    let pubs: PubData[] = [];
-    for (const element of data.elements) {
-        const lat = element.type === 'node' ? element.lat : element.center.lat;
-        const lon = element.type === 'node' ? element.lon : element.center.lon;
-        pubs.push({
-            position: { longitude: lon, latitude: lat },
-            name: element.tags.name,
-            openingHours: element.tags.opening_hours || null,
-        })
-    }
-
-    return pubs;
+        return pubs;
+    }).catch((reason) => {
+        return [];
+    });
 }

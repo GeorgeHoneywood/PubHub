@@ -121,7 +121,10 @@ export function MapView() {
     }, []);
 
     useEffect(() => {
-        getPubsInRegion(region).then(value => setPubs(value));
+        if (region && region.length >= 3) {
+            getPubsInRegion(region).then(value => setPubs(value));
+        }
+        setLoadingContext(false);
     }, [region])
 
     useEffect(() => {
@@ -160,44 +163,49 @@ export function MapView() {
             tempList.push(m);
         })
         setMarkers(tempList);
+        setLoadingContext(false);
     }, [currentCrawl])
 
     useEffect(() => {
+        setLoadingContext(true);
         retrieveRoute(pubs);
     }, [maxPubs])
 
     const retrieveRoute = debounce(async (pubs: PubData[]) => {
-        if (!map.current || pubs.length < 2) return;
+        if (!map.current || pubs.length < 2) {
+            setLoadingContext(false);
+            return;
+        }
         let pubData = pubs;
         if(pubData.length > maxPubs) {
             pubData = pubs.slice(0, maxPubs);
         }
-        const data = await getRoute(pubData);
-
-        // concatenatedLines: [[number, number]] //
-        let concatenatedLines = data.route.map((value => [value.longitude, value.latitude]));
-        if (map.current?.getLayer("route")) {
-            map.current.removeLayer("route");
-            map.current.removeSource("route");
-        }
-        map.current?.addLayer({
-            id: 'route',
-            type: 'line',
-            source: {
-                type: 'geojson',
-                data: {
-                    'type': 'Feature',
-                    'properties': {},
-                    'geometry': {
-                        'type': 'LineString',
-                        'coordinates': concatenatedLines,
-                    }
+        await getRoute(pubData).then((data) => {
+            let concatenatedLines = data.route.map((value => [value.longitude, value.latitude]));
+            if (map.current?.getLayer("route")) {
+                map.current.removeLayer("route");
+                map.current.removeSource("route");
+            }
+            map.current?.addLayer({
+                id: 'route',
+                type: 'line',
+                source: {
+                    type: 'geojson',
+                    data: {
+                        'type': 'Feature',
+                        'properties': {},
+                        'geometry': {
+                            'type': 'LineString',
+                            'coordinates': concatenatedLines,
+                        }
+                    },
                 },
-            },
-            paint: { 'line-width': 4, 'line-color': '#000' },
+                paint: { 'line-width': 4, 'line-color': '#000' },
+            });
+            setCurrentCrawl(data);
+        }).finally(() => {
+            setLoadingContext(false)
         });
-        setCurrentCrawl(data);
-        setLoadingContext(false);
     }, 0.25 * 1000, {leading: true})
 
     return (
