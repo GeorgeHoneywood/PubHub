@@ -132,6 +132,7 @@ export function MapView() {
 
     async function retrievePubs() {
         if (!map.current) return;
+        if (map.current.getZoom() < 14) return;
         const pubs = await getPubs(map.current?.getBounds());
         setPubs(pubs);
     }
