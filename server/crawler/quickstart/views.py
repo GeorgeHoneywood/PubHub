@@ -1,7 +1,5 @@
-import urllib.parse
 from typing import OrderedDict
 
-from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import serializers
@@ -13,7 +11,6 @@ from crawler.quickstart.serializers import ValhallaTripSerializer, ValhallaRespo
 
 
 class TripView(APIView):
-
     def post(self, request, format=None):
         request_data = ValhallaTripSerializer(data=request.data)
         response_data = None
@@ -31,9 +28,16 @@ class TripView(APIView):
             if res.status_code == requests.codes.ok:
                 response_data = ValhallaResponseSerializer(data=res.json()['trip'])
                 if response_data.is_valid():
-                    shapes = [leg['shape'] for leg in response_data.validated_data['legs']]
+                    shapes = []
+                    time = 0
+                    distance = 0
+                    for leg in response_data.validated_data['legs']:
+                        shapes.append(leg['shape'])
+                        time += leg["summary"]['time']
+                        distance += leg["summary"]['length']
+                     
                     locations = response_data.validated_data['locations'][:-1]
-                    output_serializer = RouteResponseSerializer(data={'shapes': shapes, 'locations': locations})
+                    output_serializer = RouteResponseSerializer(data={'shapes': shapes, 'locations': locations, 'time': time / 60, 'distance': distance})
                     if output_serializer.is_valid():
                         return Response(status=200, data=output_serializer.data)
             else:

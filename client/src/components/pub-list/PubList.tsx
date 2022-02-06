@@ -27,6 +27,7 @@ export function PubList(props: any) {
                 <Offcanvas.Body>
                     <FormLabel>Maximum No. of Pubs/Bars: {maxPubs}</FormLabel>
                     <FormRange value={maxPubs} onChange={(e) => setMaxPubs(parseInt(e.target.value))} min={4} max={50} />
+                    <p>{currentCrawl.pubs.length} pubs - {currentCrawl.distance.toFixed(2)} km - takes {(currentCrawl.time + (10 * currentCrawl.pubs.length)).toFixed(0)} mins</p>
                     <ListGroup numbered={true}>
                         {currentCrawl.pubs.map((value, index) => {
                             return <ListGroup.Item>{value.name || `Pub ${index + 1}`}</ListGroup.Item>

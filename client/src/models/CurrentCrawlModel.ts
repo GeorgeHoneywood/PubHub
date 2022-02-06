@@ -3,5 +3,7 @@ import {Position} from "./Position";
 
 export interface CurrentCrawlModel {
     pubs: PubData[],
-    route: Position[]
+    route: Position[],
+    distance: number,
+    time: number
 }

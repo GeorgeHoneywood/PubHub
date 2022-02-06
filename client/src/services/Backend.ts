@@ -27,7 +27,9 @@ export async function getRoute(pubs: PubData[]): Promise<CurrentCrawlModel> {
                 position: {latitude: v.lat, longitude: v.lon} as Position,
                 openingHours: pubs.at(v.original_index)?.openingHours
             })),
-            route: routes
+            route: routes,
+            distance: value.distance,
+            time: value.time
         } as CurrentCrawlModel);
     });
 }
