@@ -6,8 +6,6 @@ import styles from './MapView.module.css';
 import {CurrentCrawl} from "../../contexts/CurrentCrawl";
 import {Position} from "../../models/Position";
 import debounce from "lodash/debounce"
-
-import {decodePolyline} from './helper'
 import {PubData} from "../../models/PubData";
 import {getPubs, getPubsInRegion} from "../../services/Overpass";
 import {getRoute} from "../../services/Backend";
@@ -26,7 +24,7 @@ export function MapView() {
     const [lng, setLng] = useState(-0.11);
     const [lat, setLat] = useState(51.5);
     const [zoom, setZoom] = useState(9);
-    const [show, setShow] = useState(true);
+    const [show, setShow] = useState(false);
     const [region, setRegion] = useState([] as Position[]);
     const {loadingContext, setLoadingContext} = useContext(LoadingContext);
     // TODO: leading: true should only be when come into zoom
@@ -79,15 +77,16 @@ export function MapView() {
 
         const updateArea = async (e) => {
             const data = draw.getAll();
+            let coordinates = [];
             if (data.features.length > 0) {
                 let index = data.features.length - 1;
-                const coordinates = data.features[index].geometry.coordinates[0].map((value) => ({
+                coordinates = data.features[index].geometry.coordinates[0].map((value) => ({
                     latitude: value[0],
                     longitude: value[1]
                 }));
                 if (data.features.length > 1) data.features.forEach((value, i) => i < index ? draw.delete(value.id) : null);
-                setRegion(coordinates);
             }
+            setRegion(coordinates);
         };
         map.current.on('draw.create', updateArea);
         map.current.on('draw.delete', updateArea);
