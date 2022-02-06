@@ -32,6 +32,6 @@ export async function getRoute(pubs: PubData[]): Promise<CurrentCrawlModel> {
             time: value.time
         } as CurrentCrawlModel);
     }).catch(() => {
-        return {} as CurrentCrawlModel;
+        return {route: [], pubs:[], time: 0, distance: 0} as CurrentCrawlModel;
     });
 }
