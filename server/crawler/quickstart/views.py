@@ -9,7 +9,7 @@ import requests
 import json
 from django.conf import settings
 # Create your views here.
-from crawler.quickstart.serializers import ValhallaTripSerializer, ValhallaResponseSerializer
+from crawler.quickstart.serializers import ValhallaTripSerializer, ValhallaResponseSerializer, RouteResponseSerializer
 
 
 class TripView(APIView):
@@ -26,15 +26,16 @@ class TripView(APIView):
                     pass
                 else:
                     out[k] = v
-
-            print(out)
             out["locations"].append(out["locations"][0])
             res = requests.get(f"{settings.VALHALLA_ENDPOINT}optimized_route?json={json.dumps(out)}")
             if res.status_code == requests.codes.ok:
                 response_data = ValhallaResponseSerializer(data=res.json()['trip'])
                 if response_data.is_valid():
                     shapes = [leg['shape'] for leg in response_data.validated_data['legs']]
-                    return Response(status=200, data=shapes)
+                    locations = response_data.validated_data['locations']
+                    output_serializer = RouteResponseSerializer(data={'shapes': shapes, 'locations': locations})
+                    if output_serializer.is_valid():
+                        return Response(status=200, data=output_serializer.data)
             else:
                 return Response(status=400, data=res.text)
         return Response(status=401, data=request_data.errors or response_data.errors or "")

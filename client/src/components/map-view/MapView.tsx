@@ -66,7 +66,7 @@ export function MapView() {
         map.current.addControl(draw);
 
         map.current.on('move', async () => {
-            if (!map.current || region.length > 0) return;
+            if (!map.current || region.length !== 0) return;
             setLng(map.current.getCenter().lng);
             setLat(map.current.getCenter().lat);
             setZoom(map.current.getZoom());
@@ -140,11 +140,8 @@ export function MapView() {
         if (!map.current || pubs.length < 2) return;
         const data = await getRoute(pubs);
 
-        let concatenatedLines: any[] = []
-
-        for (const encodedLine of data) {
-            concatenatedLines.push(...decodePolyline(encodedLine))
-        }
+        // concatenatedLines: [[number, number]] //
+        let concatenatedLines = data.route.map((value => [value.longitude, value.latitude]));
         if (map.current?.getLayer("route")) {
             map.current.removeLayer("route");
             map.current.removeSource("route");
@@ -165,7 +162,7 @@ export function MapView() {
             },
             paint: {'line-width': 4, 'line-color': '#000'},
         });
-        setCurrentCrawl({route: concatenatedLines.map(value => ({longitude: value[0], latitude: value[1]} as Position)), pubs: pubs});
+        setCurrentCrawl(data);
         setLoadingContext(false);
     }
 

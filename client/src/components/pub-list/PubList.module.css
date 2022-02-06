@@ -1,0 +1,9 @@
+.listContainer {
+    position: absolute;
+    left: 5px;
+    top: 120px;
+    z-index: 999;
+    max-height: 70vh;
+    max-width: 20em;
+    overflow-y: scroll;
+}

@@ -3,17 +3,19 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import {Position} from "../../models/Position";
 
-function decodePolyline(str: string, precision: number = 6) {
+function decodePolyline(str: string, precision: number = 6): [[number, number]] {
   var index = 0,
     lat = 0,
     lng = 0,
-    coordinates: any[] = [],
+    coordinates: [[number, number]] = [[0, 0]],
     shift = 0,
     result = 0,
     byte: number | null = 0,
     latitude_change,
     longitude_change,
     factor = Math.pow(10, precision || 6);
+  // This is big poopy butt hole dumb dumb
+  coordinates.splice(0);
 
   // Coordinates have variable length when encoded, so just keep
   // track of whether we've hit the end of the string. In each

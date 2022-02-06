@@ -8,9 +8,10 @@ import {CurrentCrawl} from "./contexts/CurrentCrawl";
 import {CurrentCrawlModel} from "./models/CurrentCrawlModel";
 import {LoadingContext} from "./contexts/LoadingContext";
 import {LoadingOverlay} from "./components/loading-overlay/LoadingOverlay";
+import {PubList} from "./components/pub-list/PubList";
 
 function App() {
-    const [currentCrawl, setCurrentCrawl] = useState({} as CurrentCrawlModel);
+    const [currentCrawl, setCurrentCrawl] = useState({pubs: [], route: []} as CurrentCrawlModel);
     const [loadingContext, setLoadingContext] = useState(false);
     const value = {currentCrawl, setCurrentCrawl};
     const loadingValue = {loadingContext, setLoadingContext};
@@ -19,6 +20,7 @@ function App() {
         <div className="App">
             <CurrentCrawl.Provider value={value}>
                 <TopBar/>
+                {currentCrawl.pubs.length > 0 ? <PubList /> : ''}
                 <LoadingContext.Provider value={loadingValue}>
                     {loadingContext ? <LoadingOverlay /> : ''}
                     <MapView/>

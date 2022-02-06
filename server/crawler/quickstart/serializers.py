@@ -32,7 +32,15 @@ class ValhallaResponseSerializer(serializers.Serializer):
     status_message = serializers.CharField(required=False)
     status = serializers.IntegerField(required=False)
     units = serializers.ChoiceField(choices=['miles', 'kilometers'], required=False)
+    locations = LocationSerializer(many=True, required=True)
 
     class Meta:
-        fields = ('legs', 'status_message', 'status', 'units')
+        fields = ('legs', 'status_message', 'status', 'units', 'locations')
 
+
+class RouteResponseSerializer(serializers.Serializer):
+    locations = LocationSerializer(many=True, required=True)
+    shapes = serializers.ListField(child=serializers.CharField())
+
+    class Meta:
+        field = ('locations', 'shapes')
