@@ -36,8 +36,14 @@ export function MapView() {
             setLoadingContext(false);
             return;
         }
-        const pubs = await getPubs(map.current?.getBounds());
-        setPubs(pubs);
+        const newPubs = await getPubs(map.current?.getBounds());
+        const currentPosition = {latitude: lat, longitude: lng} as Position;
+        newPubs.sort((a, b) => {
+            const aDistance = Math.hypot(a.position.latitude - currentPosition.latitude, a.position.longitude - currentPosition.longitude);
+            const bDistance = Math.hypot(b.position.latitude - currentPosition.latitude, b.position.longitude - currentPosition.longitude);
+            return aDistance - bDistance;
+        });
+        setPubs(newPubs);
     }, 2 * 1000, { trailing: true });
 
     useEffect(() => {
@@ -100,11 +106,12 @@ export function MapView() {
                     longitude: value[1]
                 }));
                 if (data.features.length > 1) data.features.forEach((value, i) => i < index ? draw.delete(value.id) : null);
+                setRegion(coordinates);
             } else if (data.features.length === 0) {
                 setLoadingContext(true);
                 debouncedGetPubs();
+                setRegion([]);
             }
-            setRegion(coordinates);
         };
         map.current.on('draw.create', updateArea);
         map.current.on('draw.delete', updateArea);
@@ -163,12 +170,7 @@ export function MapView() {
         if (!map.current || pubs.length < 2) return;
         let pubData = pubs;
         if(pubData.length > maxPubs) {
-            const currentPosition = {latitude: lat, longitude: lng} as Position;
-            pubData = pubs.copyWithin(0, 0).sort((a, b) => {
-                const aDistance = Math.hypot(a.position.latitude - currentPosition.latitude, a.position.longitude - currentPosition.longitude);
-                const bDistance = Math.hypot(b.position.latitude - currentPosition.latitude, b.position.longitude - currentPosition.longitude);
-                return aDistance - bDistance;
-            }).slice(0, maxPubs);
+            pubData = pubs.slice(0, maxPubs);
         }
         const data = await getRoute(pubData);
 
