@@ -1,7 +1,14 @@
 .listContainer {
-    position: absolute;
-    left: 5px;
-    top: 60px;
-    z-index: 999;
+    float: right;
 }
+
+@media only screen and (max-width: 600px) {
+    .tallOffcanvas {
+        height: 70vh !important;
+    }
+}
+
+
+
+
 

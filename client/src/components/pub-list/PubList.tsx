@@ -17,12 +17,12 @@ export function PubList(props: any) {
         <>
             <div className={styles.listContainer}>
                 <Button variant="primary" onClick={handleShow} className="me-2">
-                    Pub/Bar List
+                    Itinerary
                 </Button>
             </div>
-            <Offcanvas show={show} onHide={handleClose} placement={window.innerWidth <= 600 ? 'bottom' : 'start'}>
+            <Offcanvas show={show} onHide={handleClose} placement={window.innerWidth <= 600 ? 'bottom' : 'start'} className={styles.tallOffcanvas}>
                 <Offcanvas.Header closeButton>
-                    <Offcanvas.Title>Pub/Bar List</Offcanvas.Title>
+                    <Offcanvas.Title>Itinerary</Offcanvas.Title>
                 </Offcanvas.Header>
                 <Offcanvas.Body>
                     <FormLabel>Maximum No. of Pubs/Bars: {maxPubs}</FormLabel>

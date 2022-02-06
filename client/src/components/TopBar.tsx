@@ -1,10 +1,11 @@
-import { Container, Navbar } from "react-bootstrap";
+import {Container, Nav, Navbar} from "react-bootstrap";
 import logo from "../logo.svg";
+import {PubList} from "./pub-list/PubList";
 
 export function TopBar(props: any) {
     return (
         <Navbar bg="dark" variant="dark">
-            <Container>
+            <Container fluid>
                 <Navbar.Brand href="#home">
                     <img
                         alt=""
@@ -15,6 +16,9 @@ export function TopBar(props: any) {
                     />
                     PubHub
                 </Navbar.Brand>
+                <Nav>
+                    <PubList className="d-flex"/>
+                </Nav>
                 {/*<Nav className="me-auto">*/}
                 {/*    <Nav.Link href="#home">Home</Nav.Link>*/}
                 {/*    <Nav.Link href="#features">Features</Nav.Link>*/}

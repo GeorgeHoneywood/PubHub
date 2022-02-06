@@ -22,9 +22,8 @@ function App() {
     return (
         <div className="App">
             <CurrentCrawl.Provider value={value}>
-                <TopBar/>
                 <MaxPubs.Provider value={pubLimit}>
-                    {currentCrawl.pubs.length > 0 ? <PubList/> : ''}
+                    <TopBar/>
                     <LoadingContext.Provider value={loadingValue}>
                         {loadingContext ? <LoadingOverlay/> : ''}
                         <MapView/>

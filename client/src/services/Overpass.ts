@@ -35,17 +35,8 @@ async function parseOverpassResponse(response: any): Promise<PubData[]> {
 
     let pubs: PubData[] = [];
     for (const element of data.elements) {
-        let lat = 0
-        let lon = 0
-
-        if (element.type === 'node') {
-            lat = element.lat;
-            lon = element.lon;
-        } else {
-            lat = element.center.lat;
-            lon = element.center.lon;
-        }
-
+        const lat = element.type === 'node' ? element.lat : element.center.lat;
+        const lon = element.type === 'node' ? element.lon : element.center.lon;
         pubs.push({
             position: { longitude: lon, latitude: lat },
             name: element.tags.name,
