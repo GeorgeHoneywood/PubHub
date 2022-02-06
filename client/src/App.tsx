@@ -9,22 +9,27 @@ import {CurrentCrawlModel} from "./models/CurrentCrawlModel";
 import {LoadingContext} from "./contexts/LoadingContext";
 import {LoadingOverlay} from "./components/loading-overlay/LoadingOverlay";
 import {PubList} from "./components/pub-list/PubList";
+import {MaxPubs} from './contexts/MaxPubs';
 
 function App() {
     const [currentCrawl, setCurrentCrawl] = useState({pubs: [], route: []} as CurrentCrawlModel);
     const [loadingContext, setLoadingContext] = useState(false);
+    const [maxPubs, setMaxPubs] = useState(50);
     const value = {currentCrawl, setCurrentCrawl};
     const loadingValue = {loadingContext, setLoadingContext};
+    const pubLimit = {maxPubs, setMaxPubs};
 
     return (
         <div className="App">
             <CurrentCrawl.Provider value={value}>
                 <TopBar/>
-                {currentCrawl.pubs.length > 0 ? <PubList /> : ''}
-                <LoadingContext.Provider value={loadingValue}>
-                    {loadingContext ? <LoadingOverlay /> : ''}
-                    <MapView/>
-                </LoadingContext.Provider>
+                <MaxPubs.Provider value={pubLimit}>
+                    {currentCrawl.pubs.length > 0 ? <PubList/> : ''}
+                    <LoadingContext.Provider value={loadingValue}>
+                        {loadingContext ? <LoadingOverlay/> : ''}
+                        <MapView/>
+                    </LoadingContext.Provider>
+                </MaxPubs.Provider>
             </CurrentCrawl.Provider>
         </div>
     );

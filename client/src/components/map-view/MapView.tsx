@@ -11,6 +11,7 @@ import {getPubs, getPubsInRegion} from "../../services/Overpass";
 import {getRoute} from "../../services/Backend";
 import {LoadingContext} from "../../contexts/LoadingContext";
 import {Toast, ToastContainer} from "react-bootstrap";
+import {MaxPubs} from "../../contexts/MaxPubs";
 
 mapboxgl.accessToken = 'pk.eyJ1IjoiaG9uZXlmb3giLCJhIjoiY2t6OXVicGU2MThyOTJvbnh1a21idjhkZSJ9.LMyDoR9cFGG3HqAc9Zlwkg';
 
@@ -26,14 +27,15 @@ export function MapView() {
     const [zoom, setZoom] = useState(9);
     const [show, setShow] = useState(false);
     const [region, setRegion] = useState([] as Position[]);
-    const {loadingContext, setLoadingContext} = useContext(LoadingContext);
+    const {setLoadingContext} = useContext(LoadingContext);
+    const {maxPubs} = useContext(MaxPubs);
     // TODO: leading: true should only be when come into zoom
     const debouncedGetPubs = debounce( async () => {
         if (!map.current) return;
         if (map.current.getZoom() < 14) return;
         const pubs = await getPubs(map.current?.getBounds());
         setPubs(pubs);
-    }, 2 * 1000, {trailing: true});
+    }, 3 * 1000, {trailing: true});
 
     useEffect(() => {
         map.current = new mapboxgl.Map({
@@ -146,9 +148,22 @@ export function MapView() {
         setMarkers(tempList);
     }, [currentCrawl])
 
-    async function retrieveRoute(pubs: PubData[]) {
+    useEffect(() => {
+        retrieveRoute(pubs);
+    }, [maxPubs])
+
+    const retrieveRoute = debounce(async (pubs: PubData[]) => {
         if (!map.current || pubs.length < 2) return;
-        const data = await getRoute(pubs);
+        let pubData = pubs;
+        if(pubData.length > maxPubs) {
+            const currentPosition = {latitude: lat, longitude: lng} as Position;
+            pubData = pubs.copyWithin(0, 0).sort((a, b) => {
+                const aDistance = Math.hypot(a.position.latitude - currentPosition.latitude, a.position.longitude - currentPosition.longitude);
+                const bDistance = Math.hypot(b.position.latitude - currentPosition.latitude, b.position.longitude - currentPosition.longitude);
+                return aDistance - bDistance;
+            }).slice(0, maxPubs);
+        }
+        const data = await getRoute(pubData);
 
         // concatenatedLines: [[number, number]] //
         let concatenatedLines = data.route.map((value => [value.longitude, value.latitude]));
@@ -174,7 +189,7 @@ export function MapView() {
         });
         setCurrentCrawl(data);
         setLoadingContext(false);
-    }
+    }, 0.25 * 1000, {leading: true})
 
     return (
         <>
