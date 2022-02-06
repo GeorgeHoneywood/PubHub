@@ -1,10 +1,15 @@
 # PubHub
 
+A web app for generating the most efficient pub crawl routes, using the Valhalla routing engine, written in React and Django, hosted on GCP & Netlify. 
+
+![PubHub screenshot](https://user-images.githubusercontent.com/25514836/152678126-3d4e8c52-420b-403a-a191-fae21564854c.png)
+
+
 ## Inspiration
 We were inspired by the wealth of open data provided by OpenStreetMap, and decided we wanted to create a web application that utilized this tool.
 
 ## What it does
-The web app displays the shortest path between a series of pub and bars within a given area. This may be the currently viewed area or a polygon drawn out by the user. 
+The web app displays the shortest path between a series of pub and bars within a given area. This may be within the currently viewed area or a polygon drawn out by the user. 
 
 ## How we built it
 * Frontend built using React, Mapbox-GL and Bootstrap, hosted on Netlify, behind a domain.com domain name
