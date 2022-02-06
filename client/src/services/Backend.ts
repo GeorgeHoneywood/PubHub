@@ -24,7 +24,8 @@ export async function getRoute(pubs: PubData[]): Promise<CurrentCrawlModel> {
         return ({
             pubs: value.locations.map((v) => ({
                 name: pubs.at(v.original_index)?.name,
-                position: {latitude: v.lat, longitude: v.lon} as Position
+                position: {latitude: v.lat, longitude: v.lon} as Position,
+                openingHours: pubs.at(v.original_index)?.openingHours
             })),
             route: routes
         } as CurrentCrawlModel);

@@ -1,4 +1,4 @@
-import { Container, Nav, Navbar } from "react-bootstrap";
+import { Container, Navbar } from "react-bootstrap";
 import logo from "../logo.svg";
 
 export function TopBar(props: any) {

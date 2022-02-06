@@ -1,23 +1,23 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, {useEffect, useRef, useState, useContext} from "react";
-import mapboxgl, {Map, Marker} from "mapbox-gl";
+import { useEffect, useRef, useState, useContext } from "react";
+import mapboxgl, { Map, Marker } from "mapbox-gl";
 import MapboxDraw from "@mapbox/mapbox-gl-draw";
 import styles from './MapView.module.css';
-import {CurrentCrawl} from "../../contexts/CurrentCrawl";
-import {Position} from "../../models/Position";
+import { CurrentCrawl } from "../../contexts/CurrentCrawl";
+import { Position } from "../../models/Position";
 import debounce from "lodash/debounce"
-import {PubData} from "../../models/PubData";
-import {getPubs, getPubsInRegion} from "../../services/Overpass";
-import {getRoute} from "../../services/Backend";
-import {LoadingContext} from "../../contexts/LoadingContext";
-import {Toast, ToastContainer} from "react-bootstrap";
+import { PubData } from "../../models/PubData";
+import { getPubs, getPubsInRegion } from "../../services/Overpass";
+import { getRoute } from "../../services/Backend";
+import { LoadingContext } from "../../contexts/LoadingContext";
+import { Toast, ToastContainer } from "react-bootstrap";
 import {MaxPubs} from "../../contexts/MaxPubs";
 
 mapboxgl.accessToken = 'pk.eyJ1IjoiaG9uZXlmb3giLCJhIjoiY2t6OXVicGU2MThyOTJvbnh1a21idjhkZSJ9.LMyDoR9cFGG3HqAc9Zlwkg';
 
 export function MapView() {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const {currentCrawl, setCurrentCrawl} = useContext(CurrentCrawl);
+    const { currentCrawl, setCurrentCrawl } = useContext(CurrentCrawl);
     const [pubs, setPubs] = useState([] as PubData[]);
     const [markers, setMarkers] = useState([] as Marker[]);
     const mapContainer = useRef<HTMLDivElement | null>(null);
@@ -30,12 +30,15 @@ export function MapView() {
     const {setLoadingContext} = useContext(LoadingContext);
     const {maxPubs} = useContext(MaxPubs);
     // TODO: leading: true should only be when come into zoom
-    const debouncedGetPubs = debounce( async () => {
+    const debouncedGetPubs = debounce(async () => {
         if (!map.current) return;
-        if (map.current.getZoom() < 14) return;
+        if (map.current.getZoom() < 14){
+            setLoadingContext(false);
+            return;
+        }
         const pubs = await getPubs(map.current?.getBounds());
         setPubs(pubs);
-    }, 3 * 1000, {trailing: true});
+    }, 2 * 1000, { trailing: true });
 
     useEffect(() => {
         map.current = new mapboxgl.Map({
@@ -48,7 +51,7 @@ export function MapView() {
 
         map.current.addControl(
             new mapboxgl.GeolocateControl({
-                positionOptions: {enableHighAccuracy: true},
+                positionOptions: { enableHighAccuracy: true },
                 // When active the map will receive updates to the device's location as it changes.
                 trackUserLocation: true,
                 // Draw an arrow next to the location dot to indicate which direction the device is heading.
@@ -134,12 +137,16 @@ export function MapView() {
         setMarkers(() => []);
         currentCrawl.pubs.forEach((value: PubData, index: number) => {
             if (!map.current) return;
-            let m = new mapboxgl.Marker({color: index === 0 ? "red" : "#3fb1ce" })
-                .setLngLat({lon: value.position.longitude, lat: value.position.latitude})
+
+            let m = new mapboxgl.Marker({
+                color: index === 0 ? "red" : "#3fb1ce",
+                scale: index === 0 ? 1 : 0.8,
+            })
+                .setLngLat({ lon: value.position.longitude, lat: value.position.latitude })
                 .setPopup(
-                    new mapboxgl.Popup({offset: 25}) // add popups
+                    new mapboxgl.Popup({ offset: 25 }) // add popups
                         .setHTML(
-                            `<h3>${value.name || "N/A"}</h3>`
+                            `<h5>${value.name || "N/A"}</h5><p>${value.openingHours || "N/A"}</p>`
                         )
                 )
                 .addTo(map.current);
@@ -185,7 +192,7 @@ export function MapView() {
                     }
                 },
             },
-            paint: {'line-width': 4, 'line-color': '#000'},
+            paint: { 'line-width': 4, 'line-color': '#000' },
         });
         setCurrentCrawl(data);
         setLoadingContext(false);
@@ -193,7 +200,7 @@ export function MapView() {
 
     return (
         <>
-            <ToastContainer position="top-end" className="p-3" style={{zIndex: 999}}>
+            <ToastContainer position="top-end" className="p-3" style={{ zIndex: 999 }}>
                 <Toast onClose={() => setShow(false)} show={show} delay={7000} bg={'danger'} autohide>
                     <Toast.Header>
                         <img
@@ -206,7 +213,7 @@ export function MapView() {
                     <Toast.Body>Cannot create route: More than 50 pubs/bars in view</Toast.Body>
                 </Toast>
             </ToastContainer>
-            <div ref={mapContainer} className={styles.mapContainer}/>
+            <div ref={mapContainer} className={styles.mapContainer} />
         </>
     )
 }
