@@ -27,6 +27,7 @@ export function MapView() {
     const [lat, setLat] = useState(51.5);
     const [zoom, setZoom] = useState(9);
     const [show, setShow] = useState(true);
+    const [region, setRegion] = useState([] as Position[]);
     const {loadingContext, setLoadingContext} = useContext(LoadingContext);
     // TODO: leading: true should only be when come into zoom
     const debouncedGetPubs = debounce(retrievePubs, 2 * 1000, {trailing: true});
@@ -50,18 +51,6 @@ export function MapView() {
             })
         );
 
-        map.current.on('move', async () => {
-            if (!map.current) return;
-            setLng(map.current.getCenter().lng);
-            setLat(map.current.getCenter().lat);
-            setZoom(map.current.getZoom());
-
-            if (map.current.getZoom() > 14) {
-                setLoadingContext(true)
-                await debouncedGetPubs()
-            }
-        });
-
         const draw = new MapboxDraw({
             displayControlsDefault: false,
             // Select which mapbox-gl-draw control buttons to add to the map.
@@ -73,7 +62,20 @@ export function MapView() {
             // The user does not have to click the polygon control button first.
             defaultMode: 'draw_polygon',
         });
+
         map.current.addControl(draw);
+
+        map.current.on('move', async () => {
+            if (!map.current || region.length > 0) return;
+            setLng(map.current.getCenter().lng);
+            setLat(map.current.getCenter().lat);
+            setZoom(map.current.getZoom());
+
+            if (map.current.getZoom() > 14) {
+                setLoadingContext(true)
+                await debouncedGetPubs()
+            }
+        });
 
         const updateArea = async (e) => {
             const data = draw.getAll();
@@ -84,11 +86,7 @@ export function MapView() {
                     longitude: value[1]
                 }));
                 if (data.features.length > 1) data.features.forEach((value, i) => i < index ? draw.delete(value.id) : null);
-                let newPubs = await getPubsInRegion(coordinates);
-                setPubs(newPubs);
-            } else {
-                if (e.type !== 'draw.delete')
-                    alert('Click the map to draw a polygon.');
+                setRegion(coordinates);
             }
         };
         map.current.on('draw.create', updateArea);
@@ -97,6 +95,10 @@ export function MapView() {
         map.current.on('draw.move', updateArea);
 
     }, []);
+
+    useEffect(() => {
+        getPubsInRegion(region).then(value => setPubs(value));
+    }, [region])
 
     useEffect(() => {
         if (map.current?.getLayer("route")) {
@@ -169,18 +171,17 @@ export function MapView() {
 
     return (
         <>
-            <ToastContainer position="top-end" className="p-3">
-                <Toast onClose={() => setShow(false)} show={show} delay={3000} autohide>
+            <ToastContainer position="top-end" className="p-3" style={{zIndex: 999}}>
+                <Toast onClose={() => setShow(false)} show={show} delay={7000} bg={'danger'} autohide>
                     <Toast.Header>
                         <img
                             src="holder.js/20x20?text=%20"
                             className="rounded me-2"
                             alt=""
                         />
-                        <strong className="me-auto">Bootstrap</strong>
-                        <small>11 mins ago</small>
+                        <strong className="me-auto">Route Error</strong>
                     </Toast.Header>
-                    <Toast.Body>Woohoo, you're reading this text in a Toast!</Toast.Body>
+                    <Toast.Body>Cannot create route: More than 50 pubs/bars in view</Toast.Body>
                 </Toast>
             </ToastContainer>
             <div className={styles.sidebar} onClick={retrievePubs}>
