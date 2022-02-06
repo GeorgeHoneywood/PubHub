@@ -21,11 +21,9 @@ export async function getRoute(pubs: PubData[]): Promise<CurrentCrawlModel> {
         value.shapes.forEach((v) => {
             routes.push(...decodePolyline(v).map(coord => ({longitude: coord[0], latitude: coord[1]} as Position)));
         })
-        console.log(pubs);
-        console.log(value.locations);
         return ({
             pubs: value.locations.map((v) => ({
-                name: pubs.find((pub) => pub.position.latitude.toFixed(4) === v.lat.toFixed(4) && pub.position.longitude.toFixed(4) === v.lon.toFixed(4))?.name,
+                name: pubs.at(v.original_index)?.name,
                 position: {latitude: v.lat, longitude: v.lon} as Position
             })),
             route: routes

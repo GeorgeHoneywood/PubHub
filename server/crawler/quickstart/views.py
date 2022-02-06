@@ -32,7 +32,7 @@ class TripView(APIView):
                 response_data = ValhallaResponseSerializer(data=res.json()['trip'])
                 if response_data.is_valid():
                     shapes = [leg['shape'] for leg in response_data.validated_data['legs']]
-                    locations = response_data.validated_data['locations']
+                    locations = response_data.validated_data['locations'][:-1]
                     output_serializer = RouteResponseSerializer(data={'shapes': shapes, 'locations': locations})
                     if output_serializer.is_valid():
                         return Response(status=200, data=output_serializer.data)

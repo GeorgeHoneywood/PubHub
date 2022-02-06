@@ -28,7 +28,12 @@ export function MapView() {
     const [region, setRegion] = useState([] as Position[]);
     const {loadingContext, setLoadingContext} = useContext(LoadingContext);
     // TODO: leading: true should only be when come into zoom
-    const debouncedGetPubs = debounce(retrievePubs, 2 * 1000, {trailing: true});
+    const debouncedGetPubs = debounce( async () => {
+        if (!map.current) return;
+        if (map.current.getZoom() < 14) return;
+        const pubs = await getPubs(map.current?.getBounds());
+        setPubs(pubs);
+    }, 2 * 1000, {trailing: true});
 
     useEffect(() => {
         map.current = new mapboxgl.Map({
@@ -58,7 +63,7 @@ export function MapView() {
             },
             // Set mapbox-gl-draw to draw by default.
             // The user does not have to click the polygon control button first.
-            defaultMode: 'draw_polygon',
+            //defaultMode: 'draw_polygon',
         });
 
         map.current.addControl(draw);
@@ -90,6 +95,9 @@ export function MapView() {
                     longitude: value[1]
                 }));
                 if (data.features.length > 1) data.features.forEach((value, i) => i < index ? draw.delete(value.id) : null);
+            } else if (data.features.length === 0) {
+                setLoadingContext(true);
+                debouncedGetPubs();
             }
             setRegion(coordinates);
         };
@@ -110,11 +118,21 @@ export function MapView() {
             map.current.removeSource("route");
         }
         markers.forEach((value: Marker) => value.remove());
+        if (pubs.length < 50) {
+            retrieveRoute(pubs);
+        } else {
+            setShow(true);
+            setLoadingContext(false)
+        }
+    }, [pubs]);
+
+    useEffect(() => {
+        markers.forEach((value: Marker) => value.remove());
         let tempList: Marker[] = [];
         setMarkers(() => []);
-        pubs.forEach((value: PubData) => {
+        currentCrawl.pubs.forEach((value: PubData, index: number) => {
             if (!map.current) return;
-            let m = new mapboxgl.Marker()
+            let m = new mapboxgl.Marker({color: index === 0 ? "red" : "#3fb1ce" })
                 .setLngLat({lon: value.position.longitude, lat: value.position.latitude})
                 .setPopup(
                     new mapboxgl.Popup({offset: 25}) // add popups
@@ -125,21 +143,8 @@ export function MapView() {
                 .addTo(map.current);
             tempList.push(m);
         })
-        setMarkers(() => tempList);
-        if (pubs.length < 50) {
-            retrieveRoute(pubs);
-        } else {
-            setShow(true);
-            setLoadingContext(false)
-        }
-    }, [pubs]);
-
-    async function retrievePubs() {
-        if (!map.current) return;
-        if (map.current.getZoom() < 14) return;
-        const pubs = await getPubs(map.current?.getBounds());
-        setPubs(pubs);
-    }
+        setMarkers(tempList);
+    }, [currentCrawl])
 
     async function retrieveRoute(pubs: PubData[]) {
         if (!map.current || pubs.length < 2) return;

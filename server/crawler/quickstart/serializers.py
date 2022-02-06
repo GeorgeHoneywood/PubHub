@@ -4,6 +4,7 @@ from rest_framework import serializers
 class LocationSerializer(serializers.Serializer):
     lat = serializers.FloatField()
     lon = serializers.FloatField()
+    original_index = serializers.IntegerField(required=False)
 
 
 class DirectionOptionsSerializer(serializers.Serializer):
