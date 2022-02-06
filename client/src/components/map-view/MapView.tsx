@@ -1,24 +1,22 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useEffect, useRef, useState, useContext } from "react";
-import mapboxgl, { Map, Marker } from "mapbox-gl";
+import React, {useEffect, useRef, useState, useContext} from "react";
+import mapboxgl, {Map, Marker} from "mapbox-gl";
 import MapboxDraw from "@mapbox/mapbox-gl-draw";
 import styles from './MapView.module.css';
-import { CurrentCrawl } from "../../contexts/CurrentCrawl";
-import { Position } from "../../models/Position";
+import {CurrentCrawl} from "../../contexts/CurrentCrawl";
+import {Position} from "../../models/Position";
 import debounce from "lodash/debounce"
 
-import { decodePolyline } from './helper'
-import { PubData } from "../../models/PubData";
-import { getPubs, getPubsInRegion } from "../../services/Overpass";
-import { getRoute } from "../../services/Backend";
-
+import {decodePolyline} from './helper'
+import {PubData} from "../../models/PubData";
+import {getPubs, getPubsInRegion} from "../../services/Overpass";
+import {getRoute} from "../../services/Backend";
 
 mapboxgl.accessToken = 'pk.eyJ1IjoiaG9uZXlmb3giLCJhIjoiY2t6OXVicGU2MThyOTJvbnh1a21idjhkZSJ9.LMyDoR9cFGG3HqAc9Zlwkg';
 
-
 export function MapView() {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { currentCrawl } = useContext(CurrentCrawl);
+    const {currentCrawl} = useContext(CurrentCrawl);
     const [pubs, setPubs] = useState([] as PubData[]);
     const [markers, setMarkers] = useState([] as Marker[]);
     const mapContainer = useRef<HTMLDivElement | null>(null);
@@ -40,9 +38,7 @@ export function MapView() {
 
         map.current.addControl(
             new mapboxgl.GeolocateControl({
-                positionOptions: {
-                    enableHighAccuracy: true
-                },
+                positionOptions: {enableHighAccuracy: true},
                 // When active the map will receive updates to the device's location as it changes.
                 trackUserLocation: true,
                 // Draw an arrow next to the location dot to indicate which direction the device is heading.
@@ -51,7 +47,7 @@ export function MapView() {
         );
 
         // TODO: leading: true should only be when come into zoom
-        const debouncedGetPubs = debounce(retrievePubs, 5 * 1000, { leading: true, trailing: true });
+        const debouncedGetPubs = debounce(retrievePubs, 5 * 1000, {leading: true, trailing: true});
 
         map.current.on('move', () => {
             if (!map.current) return;
@@ -81,18 +77,13 @@ export function MapView() {
             const data = draw.getAll();
             if (data.features.length > 0) {
                 let index = data.features.length - 1;
-                const coordinates = data.features[index].geometry.coordinates[0].map((value) => {
-                    return { latitude: value[0], longitude: value[1] } as Position;
-                });
-                console.log(coordinates);
-                // Restrict the area to 2 decimal points.
-                if (data.features.length > 1) {
-                    data.features.forEach((value, i) => {
-                        if (i < index) draw.delete(value.id);
-                    });
-                }
-                let l = await getPubsInRegion(coordinates);
-                setPubs(l);
+                const coordinates = data.features[index].geometry.coordinates[0].map((value) => ({
+                    latitude: value[0],
+                    longitude: value[1]
+                }));
+                if (data.features.length > 1) data.features.forEach((value, i) => i < index ? draw.delete(value.id) : null);
+                let newPubs = await getPubsInRegion(coordinates);
+                setPubs(newPubs);
             } else {
                 if (e.type !== 'draw.delete')
                     alert('Click the map to draw a polygon.');
@@ -110,15 +101,15 @@ export function MapView() {
             map.current.removeLayer("route");
             map.current.removeSource("route");
         }
-        markers.forEach((value: Marker) => {value.remove()});
+        markers.forEach((value: Marker) => value.remove());
         let tempList: Marker[] = [];
         setMarkers(() => []);
         pubs.forEach((value: PubData) => {
             if (!map.current) return;
             let m = new mapboxgl.Marker()
-                .setLngLat({ lon: value.position.longitude, lat: value.position.latitude })
+                .setLngLat({lon: value.position.longitude, lat: value.position.latitude})
                 .setPopup(
-                    new mapboxgl.Popup({ offset: 25 }) // add popups
+                    new mapboxgl.Popup({offset: 25}) // add popups
                         .setHTML(
                             `<h3>${value.name || "N/A"}</h3>`
                         )
@@ -132,15 +123,9 @@ export function MapView() {
 
     async function retrievePubs() {
         if (!map.current) return;
-        console.log("getting the pubs in the bounds")
         setLoading(true);
-
         const pubs = await getPubs(map.current?.getBounds());
-        setPubs((prevValue) => {
-            return pubs;
-        });
-
-        await retrieveRoute(pubs)
+        setPubs(pubs);
     }
 
     async function retrieveRoute(pubs: PubData[]) {
@@ -153,8 +138,6 @@ export function MapView() {
         for (const encodedLine of data) {
             concatenatedLines.push(...decodePolyline(encodedLine))
         }
-
-        // FIXME: this only works the first time :(
         if (map.current?.getLayer("route")) {
             map.current.removeLayer("route");
             map.current.removeSource("route");
@@ -173,7 +156,7 @@ export function MapView() {
                     }
                 },
             },
-            paint: { 'line-width': 4, 'line-color': '#000' },
+            paint: {'line-width': 4, 'line-color': '#000'},
         });
         setLoading(false);
     }
@@ -181,9 +164,10 @@ export function MapView() {
     return (
         <>
             <div className={styles.sidebar} onClick={retrievePubs}>
-                Longitude: {lng} | Latitude: {lat} | Zoom: {zoom} {zoom < 14 ? "| Zoom in to see pubs" : ""} {loading ? "| Loading..." : ""} {pubs.length > 0 ? `| ${pubs.length} pubs found` : ""}
+                Longitude: {lng} | Latitude: {lat} |
+                Zoom: {zoom} {zoom < 14 ? "| Zoom in to see pubs" : ""} {loading ? "| Loading..." : ""} {pubs.length > 0 ? `| ${pubs.length} pubs found` : ""}
             </div>
-            <div ref={mapContainer} className="map-container" />
+            <div ref={mapContainer} className="map-container"/>
         </>
     )
 }
