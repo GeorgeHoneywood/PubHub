@@ -1,0 +1,17 @@
+@media only screen and (max-width: 600px) {
+    .topText {
+        font-size: smaller;
+    }
+}
+@media only screen and (max-width: 300px) {
+    .topText {
+        display: none;
+    }
+}
+
+
+.topText {
+    color: white;
+    margin: auto;
+    margin-right: 0.5em;
+}

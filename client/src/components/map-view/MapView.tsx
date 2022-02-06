@@ -22,17 +22,17 @@ export function MapView() {
     const [markers, setMarkers] = useState([] as Marker[]);
     const mapContainer = useRef<HTMLDivElement | null>(null);
     const map = useRef<Map | null>(null);
-    const [lng, setLng] = useState(-0.11);
-    const [lat, setLat] = useState(51.5);
-    const [zoom, setZoom] = useState(9);
+    const [lng, setLng] = useState(-0.110009);
+    const [lat, setLat] = useState(51.506813);
+    const [zoom, setZoom] = useState(16.34);
     const [show, setShow] = useState(false);
     const [region, setRegion] = useState([] as Position[]);
     const {setLoadingContext} = useContext(LoadingContext);
     const {maxPubs} = useContext(MaxPubs);
     // TODO: leading: true should only be when come into zoom
     const debouncedGetPubs = debounce(async () => {
-        if (!map.current) return;
-        if (map.current.getZoom() < 14){
+        setLoadingContext(true);
+        if (!map.current || map.current.getZoom() < 14){
             setLoadingContext(false);
             return;
         }
@@ -47,6 +47,7 @@ export function MapView() {
     }, 2 * 1000, { trailing: true });
 
     useEffect(() => {
+        setLoadingContext(true);
         map.current = new mapboxgl.Map({
             container: mapContainer.current || "",
             style: 'mapbox://styles/mapbox/streets-v11',
@@ -91,11 +92,6 @@ export function MapView() {
             }
         });
 
-        if (map.current.getZoom() > 14) {
-            setLoadingContext(true)
-            debouncedGetPubs()
-        }
-
         const updateArea = async (e) => {
             const data = draw.getAll();
             let coordinates = [];
@@ -118,12 +114,17 @@ export function MapView() {
         map.current.on('draw.update', updateArea);
         map.current.on('draw.move', updateArea);
 
+        if (map.current.getZoom() > 14) {
+            debouncedGetPubs()
+        }
     }, []);
 
     useEffect(() => {
+        setLoadingContext(true);
         if (region && region.length >= 3) {
             getPubsInRegion(region).then(value => setPubs(value));
         }
+        console.log(region);
         setLoadingContext(false);
     }, [region])
 

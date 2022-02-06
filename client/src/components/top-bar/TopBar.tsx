@@ -1,6 +1,7 @@
 import {Container, Nav, Navbar} from "react-bootstrap";
-import logo from "../logo.svg";
-import {PubList} from "./pub-list/PubList";
+import logo from "../../logo.svg";
+import {PubList} from "../pub-list/PubList";
+import styles from './TopBar.module.css';
 
 export function TopBar(props: any) {
     return (
@@ -16,6 +17,9 @@ export function TopBar(props: any) {
                     />
                     PubHub
                 </Navbar.Brand>
+                <Nav>
+                    <h6 className={styles.topText}>Zoom in on London to start seeing pub crawl paths</h6>
+                </Nav>
                 <Nav>
                     <PubList className="d-flex"/>
                 </Nav>

@@ -3,7 +3,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css'
 import {useState} from 'react';
 import {MapView} from './components/map-view/MapView';
-import {TopBar} from "./components/TopBar";
+import {TopBar} from "./components/top-bar/TopBar";
 import {CurrentCrawl} from "./contexts/CurrentCrawl";
 import {CurrentCrawlModel} from "./models/CurrentCrawlModel";
 import {LoadingContext} from "./contexts/LoadingContext";
