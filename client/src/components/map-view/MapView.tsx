@@ -75,6 +75,11 @@ export function MapView() {
             }
         });
 
+        if (map.current.getZoom() > 14) {
+            setLoadingContext(true)
+            debouncedGetPubs()
+        }
+
         const updateArea = async (e) => {
             const data = draw.getAll();
             let coordinates = [];
@@ -181,10 +186,6 @@ export function MapView() {
                     <Toast.Body>Cannot create route: More than 50 pubs/bars in view</Toast.Body>
                 </Toast>
             </ToastContainer>
-            <div className={styles.sidebar} onClick={retrievePubs}>
-                Longitude: {lng} | Latitude: {lat} |
-                Zoom: {zoom} {zoom < 14 ? "| Zoom in to see pubs" : ""} {loadingContext ? "| Loading..." : ""} {pubs.length > 0 ? `| ${pubs.length} pubs found` : ""}
-            </div>
             <div ref={mapContainer} className={styles.mapContainer}/>
         </>
     )
