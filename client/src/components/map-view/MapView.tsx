@@ -35,6 +35,7 @@ export function MapView() {
             style: 'mapbox://styles/mapbox/streets-v11',
             center: [lng, lat],
             zoom,
+            hash: true,
         });
 
         map.current.addControl(
