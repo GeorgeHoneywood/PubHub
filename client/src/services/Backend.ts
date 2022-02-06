@@ -4,7 +4,7 @@ import {CurrentCrawlModel} from "../models/CurrentCrawlModel";
 import {decodePolyline} from "../components/map-view/helper";
 
 export async function getRoute(pubs: PubData[]): Promise<CurrentCrawlModel> {
-    const response = await fetch("http://localhost:8000/route", {
+    const response = await fetch(`${process.env.REACT_APP_API_ENDPOINT}/route`, {
         "headers": {
             "content-type": "application/json"
         },
